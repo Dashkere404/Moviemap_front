@@ -1,0 +1,16 @@
+.footer {
+    position: relative; /* Changed from fixed to relative */
+    width: 100%; /* Занимает всю ширину */
+    height: 150px; /* Установите желаемую высоту */
+    background-color: var(--dark-head); /* Цвет фона */
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 50px; /* Add some margin to separate from content */
+  }
+
+.footerText {
+    color: var(--light-pink);
+    opacity: 0.1;
+  }

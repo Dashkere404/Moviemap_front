@@ -1,0 +1,100 @@
+:root {
+  --light-pink: #EFCFFF;
+  --light-pink-transparent: #efcfff1d;
+  --dark-head: #080623;
+  --violet-window: #2B275F;
+  --violet-window-transparent: #2b275f7d;
+  --rating: #F3DD50;
+  --background: #120F33;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto !important;
+}
+
+body {
+  background-color: var(--background);
+  color: white;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto !important;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-y: auto !important;
+}
+
+.main-content {
+  flex: 1;
+  padding-bottom: 20px;
+  width: 100%;
+  overflow-y: auto !important;
+}
+
+.background-stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('../assets/stars-pattern.png');
+  background-size: cover;
+  opacity: 0.05;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.background-posters {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 40%;
+  height: 100%;
+  background-image: url('../assets/posters.png');
+  background-size: cover;
+  opacity: 0.05;
+  z-index: -1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+} 
+
+.posters-shadow {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 40%;
+  height: 100%;
+  background-color: var(--background);
+  z-index: -1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  overflow-y: auto !important;
+}
+
+
+
+
