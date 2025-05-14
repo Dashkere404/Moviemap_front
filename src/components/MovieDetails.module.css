@@ -112,7 +112,7 @@
 .starHalf {
   background: linear-gradient(90deg, var(--rating) 50%, transparent 40%);
   -webkit-text-stroke: 1px var(--rating);
-  background-clip: text; /* для браузеров, не поддерживающих background-clip */
+  background-clip: text; 
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   color: var(--rating);

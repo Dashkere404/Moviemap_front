@@ -117,7 +117,7 @@
   border-radius: 30px;
   padding: 0 30px;
   height: 70px;
-  
+  position: relative;
 }
 
 .searchIcon {
@@ -149,6 +149,43 @@
   opacity: 1;
 }
 
+/* Добавляем стили для отключенного поля поиска */
+.searchInput:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+/* Добавляем стили для кнопки очистки поиска */
+.clearSearchButton {
+  position: absolute;
+  right: 20px;
+  background: none;
+  border: none;
+  color: var(--light-pink);
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+  border-radius: 50%;
+}
+
+.clearIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.clearSearchButton:hover {
+  background-color: rgba(239, 207, 255, 0.2);
+  opacity: 1;
+}
+
 .filterButton {
   display: flex;
   align-items: center;
@@ -173,6 +210,16 @@
 .activeFilterButton {
   border: 2px solid var(--light-pink);
   background-color: rgba(239, 207, 255, 0.2);
+}
+
+/* Добавляем стили для отключенных кнопок фильтров */
+.disabledFilterButton {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: rgba(150, 150, 180, 0.2);
+  color: rgba(239, 207, 255, 0.5);
+  border: 1px solid rgba(150, 150, 180, 0.3);
+  transform: scale(1) !important;
 }
 
 .filterIcon {

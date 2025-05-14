@@ -13,33 +13,14 @@ export default function MovieDetails() {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Force scroll to top when component mounts
     window.scrollTo(0, 0);
     
-    // Disable scrolling on the body when viewing movie details
     document.body.style.overflow = 'hidden';
 
-    // Fetch movie details when component mounts ------- REAL API CALL
-    // const fetchMovieDetails = async () => {
-    //     try {
-    //       const response = await fetch(`/movie/${movieId}`);
-    //       if (!response.ok) throw new Error('Movie not found');
-    //       const data = await response.json();
-    //       setMovie(data);
-    //     } catch (error) {
-    //       console.error('Error fetching movie details:', error);
-    //     } finally {
-    //       setLoading(false);
-    //     }
-    //   };
-
-    // Fetch movie details when component mounts ------- MOCK DATA
     const fetchMovieDetails = () => {
-        // Simulated response
         const mockResponse = {
           movieId: 2028,
           title: "Спасти рядового Райана",
-        //   poster_ur: "https://image.tmdb.org/t/p/w500/vhIwsqsMmdv6uwup4V6HJSMcQxI.jpg",
           poster_ur: poster6,
           average_rating: 3.6,
           overview: "Капитан Джон Миллер получает тяжелое задание. Вместе с отрядом из восьми человек Миллер должен отправиться в тыл врага на поиски рядового Джеймса Райана, три родных брата которого почти одновременно погибли на полях сражений. Командование приняло решение демобилизовать Райана и отправить его на родину к безутешной матери. Но для того, чтобы найти и спасти солдата, крошечному отряду придется пройти через все круги ада...",
@@ -51,17 +32,15 @@ export default function MovieDetails() {
           ]
         };
 
-        // Simulate a delay
       setTimeout(() => {
         setMovie(mockResponse);
         setLoading(false);
-      }, 1000); // 1 second delay to simulate network request
+      }, 1000); 
     };
     
     
     fetchMovieDetails();
 
-    // Cleanup function to restore scrolling when component unmounts
     return () => {
       document.body.style.overflow = 'auto';
     };
@@ -73,7 +52,6 @@ export default function MovieDetails() {
 
   const handleBack = (e) => {
     e.preventDefault();
-    // Go back to the previous page with the saved state
     if (location.state && location.state.fromMain) {
       navigate('/main', { 
         state: location.state,
@@ -84,7 +62,6 @@ export default function MovieDetails() {
     }
   };
   
-  // Generate star rating display based on average_rating
   const renderStarRating = (rating) => {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;

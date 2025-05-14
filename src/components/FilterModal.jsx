@@ -13,7 +13,7 @@ export default function FilterModal({ isOpen, onClose, title, children, onApply,
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
+      document.body.style.overflow = 'hidden'; 
     } else {
       document.body.style.overflow = 'auto';
     }

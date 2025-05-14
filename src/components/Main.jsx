@@ -4,6 +4,7 @@ import searchIcon from '../assets/search.svg';
 import genreIcon from '../assets/genre.svg';
 import rateIcon from '../assets/rate.svg';
 import yearIcon from '../assets/year.svg';
+import clearIcon from '../assets/clear.svg';
 import styles from './Main.module.css';
 import filterStyles from './FilterModal.module.css';
 import tape from '../assets/tape.png';
@@ -17,17 +18,37 @@ import poster3 from '../assets/poster3.jpg';
 import poster4 from '../assets/poster4.jpg';
 import poster5 from '../assets/poster5.jpg';
 
-const posters = [poster1, poster2, poster3, poster4, poster5]; // Массив с импортированными постерами
+const posters = [poster1, poster2, poster3, poster4, poster5]; 
 
-// Genre list
 const genres = [
-  'Action', 'Adventure', 'Animation', "Children's", 'Comedy', 'Crime',
+  'Action', 'Adventure', 'Animation', "Children", 'Comedy', 'Crime',
   'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'Musical',
-  'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western'
+  'Mystery', 'Romance', 'Sci-fi', 'Thriller', 'War', 'Western'
 ];
 
-// Rating options
 const ratingOptions = ['1+', '2+', '3+', '4+', '5'];
+
+const GENRE_TRANSLATIONS = {
+  "Action": "Боевик",
+  "Adventure": "Приключения",
+  "Animation": "Анимация",
+  "Children": "Детский",
+  "Comedy": "Комедия",
+  "Crime": "Криимнал",
+  "Documentary": "Документальный",
+  "Drama": "Драма",
+  "Fantasy": "Фэнтези",
+  "Film-Noir": "Фильм-нуар",
+  "Horror": "Ужасы",
+  "Musical": "Мюзикл",
+  "Mystery": "Детектив",
+  "Romance": "Мелодрама",
+  "Sci-fi": "Научная фантастика",
+  "Thriller": "Триллер",
+  "War": "Военный",
+  "Western": "Вестерн",
+  "(no genres listed)": "Не указано"
+};
 
 export default function Main() {
   const navigate = useNavigate();
@@ -40,8 +61,10 @@ export default function Main() {
   const [userTitle, setUserTitle] = useState('Рекомендации для пользователя');
   const [movies, setMovies] = useState([]);
   const [showMovies, setShowMovies] = useState(false);
+  
+  const [searchInputDisabled, setSearchInputDisabled] = useState(false);
+  const [filtersDisabled, setFiltersDisabled] = useState(false);
 
-  // Filter states
   const [showGenreModal, setShowGenreModal] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showYearModal, setShowYearModal] = useState(false);
@@ -51,29 +74,27 @@ export default function Main() {
   const [bestFirst, setBestFirst] = useState(true);
   const [yearRange, setYearRange] = useState({ minYear: 1874, maxYear: 2016 });
   
+  const [tempSelectedGenres, setTempSelectedGenres] = useState([]);
+  const [tempSelectedRatings, setTempSelectedRatings] = useState([]);
+  const [tempBestFirst, setTempBestFirst] = useState(true);
+  const [tempYearRange, setTempYearRange] = useState({ minYear: 1874, maxYear: 2016 });
+  
   const [genreFilterActive, setGenreFilterActive] = useState(false);
   const [ratingFilterActive, setRatingFilterActive] = useState(false);
   const [yearFilterActive, setYearFilterActive] = useState(false);
   
-  // Add a state to store the scroll position
   const [scrollPosition, setScrollPosition] = useState(0);
 
-  // Modify the useEffect to restore all states
   useEffect(() => {
-    // Check if returning from movie details with saved state
     if (location.state) {
-      // Don't scroll to top if we have a saved position
       if (location.state.scrollPosition) {
-        // Delay scrolling to ensure the DOM is fully loaded
         setTimeout(() => {
           window.scrollTo(0, location.state.scrollPosition);
         }, 100);
       } else {
-        // If no saved position, scroll to top
         window.scrollTo(0, 0);
       }
 
-      // Restore search query and user ID
       if (location.state.searchQuery) {
         setSearchQuery(location.state.searchQuery);
       }
@@ -84,7 +105,6 @@ export default function Main() {
         }
       }
       
-      // Restore filter states
       if (location.state.selectedGenres) {
         setSelectedGenres(location.state.selectedGenres);
       }
@@ -98,7 +118,6 @@ export default function Main() {
         setYearRange(location.state.yearRange);
       }
       
-      // Restore filter active states
       if (location.state.genreFilterActive !== undefined) {
         setGenreFilterActive(location.state.genreFilterActive);
       }
@@ -109,30 +128,25 @@ export default function Main() {
         setYearFilterActive(location.state.yearFilterActive);
       }
       
-      // Restore movies if available
       if (location.state.movies && location.state.movies.length > 0) {
         setMovies(location.state.movies);
         setShowMovies(true);
       }
     } else {
-      // If not returning from movie details, scroll to top
       window.scrollTo(0, 0);
     }
     
-    // Check if this is "Similar Movies" view
     if (location.pathname.includes('/similar/') && movieId) {
       setUserTitle(`Похожие фильмы`);
       fetchSimilarMovies(movieId);
     }
     
-    // Save scroll position when navigating away
     const handleScroll = () => {
       setScrollPosition(window.scrollY);
     };
     
     window.addEventListener('scroll', handleScroll);
     
-    // Cleanup function to reset when component unmounts
     return () => {
       window.removeEventListener('scroll', handleScroll);
       document.body.style.overflow = 'auto';
@@ -140,8 +154,6 @@ export default function Main() {
   }, [location, movieId]);
 
   const fetchSimilarMovies = async (id) => {
-    // This function would fetch similar movies from the backend
-    // For now, we're using mock data
     const mockMovies = Array(50).fill().map((_, index) => ({
       id: index + 200,
       title: `Похожий фильм ${index + 1}`,
@@ -156,7 +168,6 @@ export default function Main() {
   };
 
   const getRandomGenres = () => {
-    // Helper to generate random genres for mock data
     const numberOfGenres = Math.floor(Math.random() * 4) + 1;
     const shuffled = [...genres].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, numberOfGenres);
@@ -168,9 +179,6 @@ export default function Main() {
 
   const handleSearch = (e) => {
     if (e.key === 'Enter') {
-      // Mock search functionality - would fetch movie data based on search query
-      // Mock data with 50 movies for demonstration
-
       const movieTitles = [
         "Приключения в космосе",
         "Тайна старого замка",
@@ -195,13 +203,30 @@ export default function Main() {
       
       setMovies(mockMovies);
       
-      // Set timeout to allow the DOM to update before showing movies
+      if (searchQuery.trim() !== '') {
+        setSearchInputDisabled(true);
+        setFiltersDisabled(true);
+        
+        setSelectedGenres([]);
+        setSelectedRatings([]);
+        setYearRange({ minYear: 1874, maxYear: 2016 });
+        setGenreFilterActive(false);
+        setRatingFilterActive(false);
+        setYearFilterActive(false);
+      }
+      
       setTimeout(() => {
         setShowMovies(true);
-        // Ensure scrolling is enabled
         document.body.style.overflow = 'auto';
       }, 100);
     }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSearchInputDisabled(false);
+    setFiltersDisabled(false);
+    setShowMovies(false);
   };
 
   const handleUserIdChange = (e) => {
@@ -211,12 +236,7 @@ export default function Main() {
   const handleUserIdSearch = async (e) => {
     if (e.key === 'Enter') {
       try {
-        // Real API call that would be used
-        // const response = await fetch(`/recommend/by-ratings/${userIdInput}`);
-        // const data = await response.json();
-        // setMovies(data.recommendations);
         
-        // Mock data for now
         setUserTitle(`Рекомендации для пользователя ${userIdInput}`);
         const mockMovies = Array(50).fill().map((_, index) => ({
           id: index + 100,
@@ -229,10 +249,13 @@ export default function Main() {
         
         setMovies(mockMovies);
         
-        // Set timeout to allow the DOM to update before showing movies
+        setSearchInputDisabled(false);
+        setFiltersDisabled(false);
+        
+        setSearchQuery('');
+        
         setTimeout(() => {
           setShowMovies(true);
-          // Ensure scrolling is enabled
           document.body.style.overflow = 'auto';
         }, 100);
       } catch (error) {
@@ -263,9 +286,8 @@ export default function Main() {
     });
   };
 
-  // Filter handling functions
   const toggleGenreSelection = (genre) => {
-    setSelectedGenres(prev => 
+    setTempSelectedGenres(prev => 
       prev.includes(genre) 
         ? prev.filter(g => g !== genre) 
         : [...prev, genre]
@@ -273,69 +295,95 @@ export default function Main() {
   };
 
   const toggleRatingSelection = (rating) => {
-    setSelectedRatings(prev => 
+    setTempSelectedRatings(prev => 
       prev.includes(rating) ? [] : [rating]
     );
   };
 
   const toggleBestFirst = () => {
-    setBestFirst(prev => !prev);
+    setTempBestFirst(prev => !prev);
   };
 
   const handleYearChange = (range) => {
-    setYearRange(range);
+    setTempYearRange(range);
   };
 
-  // Filter apply and reset functions
   const applyGenreFilter = () => {
-    if (selectedGenres.length > 0) {
+    if (tempSelectedGenres.length > 0) {
+      setSelectedGenres(tempSelectedGenres);
       setGenreFilterActive(true);
-      // Filter movies logic would go here in the real app
-      // For now, we'll just close the modal
+      setShowGenreModal(false);
+    } else {
       setShowGenreModal(false);
     }
   };
 
   const resetGenreFilter = () => {
+    setTempSelectedGenres([]);
     setSelectedGenres([]);
     setGenreFilterActive(false);
     setShowGenreModal(false);
-    // Reset filter logic would go here
   };
 
   const applyRatingFilter = () => {
-    if (selectedRatings.length > 0 || bestFirst) {
+    if (tempSelectedRatings.length > 0 || tempBestFirst !== bestFirst) {
+      setSelectedRatings(tempSelectedRatings);
+      setBestFirst(tempBestFirst);
       setRatingFilterActive(true);
-      // Filter movies logic would go here
       setShowRatingModal(false);
     } else {
-      // If no rating is selected but we still want to close the modal
       setShowRatingModal(false);
     }
   };
 
   const resetRatingFilter = () => {
+    setTempSelectedRatings([]);
+    setTempBestFirst(true);
     setSelectedRatings([]);
     setBestFirst(true);
     setRatingFilterActive(false);
     setShowRatingModal(false);
-    // Reset filter logic would go here
   };
 
   const applyYearFilter = () => {
-    setYearFilterActive(true);
-    // Filter movies logic would go here
+    if (tempYearRange.minYear !== yearRange.minYear || tempYearRange.maxYear !== yearRange.maxYear) {
+      setYearRange(tempYearRange);
+      setYearFilterActive(true);
+    }
     setShowYearModal(false);
   };
 
   const resetYearFilter = () => {
-    setYearRange({ minYear: 1874, maxYear: 2016 });
+    const defaultYearRange = { minYear: 1874, maxYear: 2016 };
+    setTempYearRange(defaultYearRange);
+    setYearRange(defaultYearRange);
     setYearFilterActive(false);
     setShowYearModal(false);
-    // Reset filter logic would go here
   };
 
-  // Filtered movies
+  const handleTempYearChange = (range) => {
+    setTempYearRange(range);
+  };
+
+  useEffect(() => {
+    if (showGenreModal) {
+      setTempSelectedGenres(selectedGenres);
+    }
+  }, [showGenreModal, selectedGenres]);
+
+  useEffect(() => {
+    if (showRatingModal) {
+      setTempSelectedRatings(selectedRatings);
+      setTempBestFirst(bestFirst);
+    }
+  }, [showRatingModal, selectedRatings, bestFirst]);
+
+  useEffect(() => {
+    if (showYearModal) {
+      setTempYearRange(yearRange);
+    }
+  }, [showYearModal, yearRange]);
+
   const filteredMovies = movies.filter(movie => {
     let passes = true;
 
@@ -344,7 +392,6 @@ export default function Main() {
     }
 
     if (ratingFilterActive && selectedRatings.length > 0) {
-      // For single selection, we just check if the movie rating is greater than or equal to the selected rating
       const minRating = parseInt(selectedRatings[0].charAt(0));
       passes = passes && parseFloat(movie.rating) >= minRating;
     }
@@ -356,10 +403,13 @@ export default function Main() {
     return passes;
   });
 
-  // Sort movies if bestFirst is enabled
   const sortedMovies = [...(filteredMovies.length > 0 ? filteredMovies : movies)];
-  if (ratingFilterActive && bestFirst) {
-    sortedMovies.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+  if (ratingFilterActive) {
+    if (bestFirst) {
+      sortedMovies.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+    } else {
+      sortedMovies.sort((a, b) => parseFloat(a.rating) - parseFloat(b.rating));
+    }
   }
 
   return (
@@ -402,28 +452,56 @@ export default function Main() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleSearch}
+            disabled={searchInputDisabled}
           />
+          {searchQuery && (
+            <button 
+              className={styles.clearSearchButton} 
+              onClick={handleClearSearch}
+              aria-label="Очистить поиск"
+            >
+              <img src={clearIcon} alt="Очистить" className={styles.clearIcon} />
+            </button>
+          )}
         </div>
 
         <button 
-          className={genreFilterActive ? `${styles.filterButton} ${styles.activeFilterButton}` : styles.filterButton}
-          onClick={() => setShowGenreModal(true)}
+          className={genreFilterActive 
+            ? `${styles.filterButton} ${styles.activeFilterButton}` 
+            : filtersDisabled 
+              ? `${styles.filterButton} ${styles.disabledFilterButton}` 
+              : styles.filterButton
+          }
+          onClick={() => !filtersDisabled && setShowGenreModal(true)}
+          disabled={filtersDisabled}
         >
           <img src={genreIcon} alt="Genre" className={styles.filterIcon} />
           <span>Жанр</span>
         </button>
         
         <button 
-          className={ratingFilterActive ? `${styles.filterButton} ${styles.activeFilterButton}` : styles.filterButton}
-          onClick={() => setShowRatingModal(true)}
+          className={ratingFilterActive 
+            ? `${styles.filterButton} ${styles.activeFilterButton}` 
+            : filtersDisabled 
+              ? `${styles.filterButton} ${styles.disabledFilterButton}` 
+              : styles.filterButton
+          }
+          onClick={() => !filtersDisabled && setShowRatingModal(true)}
+          disabled={filtersDisabled}
         >
           <img src={rateIcon} alt="Rating" className={styles.filterIcon} />
           <span>Рейтинг</span>
         </button>
 
         <button 
-          className={yearFilterActive ? `${styles.filterButton} ${styles.activeFilterButton}` : styles.filterButton}
-          onClick={() => setShowYearModal(true)}
+          className={yearFilterActive 
+            ? `${styles.filterButton} ${styles.activeFilterButton}` 
+            : filtersDisabled 
+              ? `${styles.filterButton} ${styles.disabledFilterButton}` 
+              : styles.filterButton
+          }
+          onClick={() => !filtersDisabled && setShowYearModal(true)}
+          disabled={filtersDisabled}
         >
           <img src={yearIcon} alt="Year" className={styles.filterIcon} />
           <span>Год</span>
@@ -481,16 +559,16 @@ export default function Main() {
           {genres.map(genre => (
             <div 
               key={genre}
-              className={`${filterStyles.filterOption} ${selectedGenres.includes(genre) ? filterStyles.active : ''}`}
+              className={`${filterStyles.filterOption} ${tempSelectedGenres.includes(genre) ? filterStyles.active : ''}`}
               onClick={() => toggleGenreSelection(genre)}
             >
               <input
                 type="checkbox"
-                checked={selectedGenres.includes(genre)}
+                checked={tempSelectedGenres.includes(genre)}
                 onChange={() => toggleGenreSelection(genre)}
                 className={filterStyles.checkbox}
               />
-              <span>{genre}</span>
+              <span>{GENRE_TRANSLATIONS[genre] || genre}</span>
             </div>
           ))}
         </div>
@@ -507,12 +585,12 @@ export default function Main() {
           {ratingOptions.map(rating => (
             <div 
               key={rating}
-              className={`${filterStyles.filterOption} ${selectedRatings.includes(rating) ? filterStyles.active : ''}`}
+              className={`${filterStyles.filterOption} ${tempSelectedRatings.includes(rating) ? filterStyles.active : ''}`}
               onClick={() => toggleRatingSelection(rating)}
             >
               <input
                 type="radio"
-                checked={selectedRatings.includes(rating)}
+                checked={tempSelectedRatings.includes(rating)}
                 onChange={() => toggleRatingSelection(rating)}
                 className={filterStyles.radioInput}
                 name="rating-option"
@@ -523,12 +601,12 @@ export default function Main() {
         </div>
         <div className={filterStyles.bestFirstOption}>
           <div 
-            className={`${filterStyles.filterOption} ${bestFirst ? filterStyles.active : ''}`}
+            className={`${filterStyles.filterOption} ${tempBestFirst ? filterStyles.active : ''}`}
             onClick={toggleBestFirst}
           >
             <input
               type="checkbox"
-              checked={bestFirst}
+              checked={tempBestFirst}
               onChange={toggleBestFirst}
               className={filterStyles.checkbox}
             />
@@ -544,7 +622,12 @@ export default function Main() {
         onApply={applyYearFilter}
         onReset={resetYearFilter}
       >
-        <YearSlider onChange={handleYearChange} />
+        <YearSlider 
+          onChange={handleTempYearChange} 
+          initialYearRange={tempYearRange} 
+          minYear={1874} 
+          maxYear={2016} 
+        />
       </FilterModal>
     </div>
   );

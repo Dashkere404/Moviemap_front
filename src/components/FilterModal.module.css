@@ -16,7 +16,7 @@
   background-color: #2B275F;
   border-radius: 30px;
   width: 75%;
-  max-width: 1500px;
+  max-width: 1200px;
   min-width: 400px;
   padding: 50px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -89,7 +89,7 @@
 /* Styles for filter content */
 .filterGroup {
   display: grid;
-  grid-template-columns: repeat(6, minmax(140px, 1fr));
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
   grid-auto-rows: minmax(45px, auto);
   gap: 20px;
   margin-top: 30px;
@@ -163,6 +163,18 @@
   min-height: 80px;
   text-align: left;
   font-size: 18px;
+  overflow: hidden;
+  position: relative;
+}
+
+.filterOption span {
+  white-space: normal;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.3;
+  margin-left: 5px;
 }
 
 .filterOption.active {

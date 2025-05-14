@@ -3,7 +3,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 150px;
+  height: 130px;
   background-color: var(--dark-head);
   display: flex;
   justify-content: center;
@@ -12,8 +12,8 @@
 }
 
 .logo {
-  width: 50px; /* Увеличьте ширину */
-  height: auto; /* Сохраняйте пропорции */
+  width: 50px;
+  height: auto;
 }
 
 .title {
