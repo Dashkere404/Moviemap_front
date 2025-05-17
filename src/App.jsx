@@ -7,6 +7,9 @@ import Footer from './components/Footer';
 import './styles/global.css';
 import './styles/fix-scroll.css';
 
+// Базовый URL API
+export const API_BASE_URL = 'https://solid-ears-rush.loca.lt';
+
 // Background component that shows stars on all pages and posters only on welcome page
 function Background() {
   const location = useLocation();

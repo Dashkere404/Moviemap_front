@@ -21,6 +21,7 @@
   padding: 50px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   position: relative;
+  will-change: transform;
 }
 
 .modalHeader {
@@ -211,6 +212,8 @@
   background: #EFCFFF;
   border-radius: 5px;
   position: absolute;
+  will-change: left, width;
+  transition: left 0.05s ease, width 0.05s ease;
 }
 
 .sliderThumb {
@@ -224,17 +227,22 @@
   cursor: grab;
   z-index: 3;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  transition: transform 0.1s ease;
+  transition: transform 0.1s ease, background-color 0.2s ease;
   touch-action: none;
+  will-change: transform, left;
 }
 
 .sliderThumb:hover {
   transform: scale(1.1);
+  background-color: #f5e0ff;
 }
 
-.sliderThumb:active {
+.sliderThumb:active, .sliderThumb.active {
   transform: scale(1.15);
   cursor: grabbing;
+  background-color: #d8a6ff;
+  z-index: 4;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .valueLabel {
@@ -250,6 +258,10 @@
   left: 50%;
   white-space: nowrap;
   user-select: none;
+  pointer-events: none;
+  will-change: transform;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .rangeInput {
@@ -279,4 +291,25 @@
 .bestFirstOption .filterOption {
   min-width: 200px;
   max-width: 250px;
+}
+
+/* Добавляем стили для отображения диапазона годов */
+.yearRangeDisplay {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 5px 10px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Стили для отключенных кнопок */
+.applyButton:disabled, .resetButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 } 

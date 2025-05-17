@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import styles from './MovieDetails.module.css';
 import mask from '../assets/mask.svg';
 import backButton from '../assets/back-button.svg';
-import poster6 from '../assets/poster6.jpg';
+import { API_BASE_URL } from '../App';
 
 export default function MovieDetails() {
   const { movieId } = useParams();
@@ -11,43 +11,156 @@ export default function MovieDetails() {
   const location = useLocation();
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [posterError, setPosterError] = useState(false);
+  const [cancelLoad, setCancelLoad] = useState(false);
   
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Проверяем наличие параметра reset в URL
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.has('reset')) {
+      // Если параметр reset присутствует, перенаправляем на /main без state
+      navigate('/main', { replace: true, state: null });
+      return;
+    }
     
+    window.scrollTo(0, 0);
     document.body.style.overflow = 'hidden';
 
-    const fetchMovieDetails = () => {
-        const mockResponse = {
-          movieId: 2028,
-          title: "Спасти рядового Райана",
-          poster_ur: poster6,
-          average_rating: 3.6,
-          overview: "Капитан Джон Миллер получает тяжелое задание. Вместе с отрядом из восьми человек Миллер должен отправиться в тыл врага на поиски рядового Джеймса Райана, три родных брата которого почти одновременно погибли на полях сражений. Командование приняло решение демобилизовать Райана и отправить его на родину к безутешной матери. Но для того, чтобы найти и спасти солдата, крошечному отряду придется пройти через все круги ада...",
-          year: "1998",
-          genres: [
-            "Боевик",
-            "Драма",
-            "Военный"
-          ]
-        };
-
-      setTimeout(() => {
-        setMovie(mockResponse);
+    const fetchMovieDetails = async () => {
+      try {
+        // Сбрасываем флаг отмены
+        setCancelLoad(false);
+        
+        const response = await fetch(`${API_BASE_URL}/movie/${movieId}`);
+        
+        // Проверяем, не была ли отменена загрузка
+        if (cancelLoad) {
+          return;
+        }
+        
+        if (!response.ok) {
+          throw new Error('Не удалось получить данные о фильме');
+        }
+        const data = await response.json();
+        
+        // Проверяем, не была ли отменена загрузка
+        if (cancelLoad) {
+          return;
+        }
+        
+        // Проверяем формат URL постера и добавляем базовый URL при необходимости
+        if (data.poster_url && !data.poster_url.startsWith('http')) {
+          data.poster_url = `https://image.tmdb.org/t/p/w500${data.poster_url}`;
+        }
+        
+        setMovie(data);
         setLoading(false);
-      }, 1000); 
+      } catch (error) {
+        console.error('Ошибка при получении данных о фильме:', error);
+        setLoading(false);
+      }
     };
-    
     
     fetchMovieDetails();
 
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [movieId]);
+  }, [movieId, navigate, location.search]);
+  
+  const fetchSimilarMovies = async () => {
+    try {
+      // Сбрасываем флаг отмены
+      setCancelLoad(false);
+      
+      // Показываем индикатор загрузки
+      setLoading(true);
+      
+      const response = await fetch(`${API_BASE_URL}/recommend/similar-movies/${movieId}`);
+      
+      // Проверяем, не была ли отменена загрузка
+      if (cancelLoad) {
+        setLoading(false);
+        return;
+      }
+      
+      // Сначала получаем данные от API для проверки
+      const data = await response.json();
+      
+      // Проверяем, не была ли отменена загрузка
+      if (cancelLoad) {
+        setLoading(false);
+        return;
+      }
+      
+      // Проверяем, содержит ли ответ сообщение об ошибке
+      if (!response.ok || data.message) {
+        console.log('Получен ответ с ошибкой:', data);
+        
+        // Проверяем, не была ли отменена загрузка
+        if (cancelLoad) {
+          setLoading(false);
+          return;
+        }
+        
+        // Переходим на страницу с похожими фильмами, но с пустым массивом
+        navigate(`/similar/${movieId}`, {
+          state: {
+            ...location.state, // Сохраняем весь предыдущий state
+            similarMovies: [], // Пустой массив фильмов
+            movieTitle: movie?.title || 'Фильм',
+            originalMovieId: movieId, // Передаем ID оригинального фильма
+            fromMovieDetails: true, // Флаг, что переход был с детальной страницы фильма
+            noResultsMessage: 'Похожие фильмы не найдены' // Сообщение об ошибке
+          }
+        });
+        return;
+      }
+      
+      // Проверяем, не была ли отменена загрузка
+      if (cancelLoad) {
+        setLoading(false);
+        return;
+      }
+      
+      // Если ответ успешный, переходим на страницу с похожими фильмами
+      navigate(`/similar/${movieId}`, {
+        state: {
+          ...location.state, // Сохраняем весь предыдущий state
+          similarMovies: data.recommendations,
+          movieTitle: movie?.title || 'Фильм',
+          originalMovieId: movieId, // Передаем ID оригинального фильма
+          fromMovieDetails: true // Флаг, что переход был с детальной страницы фильма
+        }
+      });
+    } catch (error) {
+      console.error('Ошибка при получении похожих фильмов:', error);
+      
+      // Проверяем, не была ли отменена загрузка
+      if (cancelLoad) {
+        setLoading(false);
+        return;
+      }
+      
+      // В случае непредвиденной ошибки также переходим на страницу с похожими фильмами
+      navigate(`/similar/${movieId}`, {
+        state: {
+          ...location.state,
+          similarMovies: [],
+          movieTitle: movie?.title || 'Фильм',
+          originalMovieId: movieId,
+          fromMovieDetails: true,
+          // noResultsMessage: 'Произошла ошибка при поиске похожих фильмов'
+          noResultsMessage: 'Похожие фильмы не найдены.'
+        }
+      });
+      
+      setLoading(false);
+    }
+  };
   
   const handleSimilarMovies = () => {
-    navigate(`/similar/${movieId}`);
+    fetchSimilarMovies();
   };
 
   const handleBack = (e) => {
@@ -60,6 +173,16 @@ export default function MovieDetails() {
     } else {
       navigate(-1);
     }
+  };
+  
+  const handlePosterError = () => {
+    setPosterError(true);
+  };
+  
+  // Функция для обработки отмены загрузки
+  const handleCancelLoad = () => {
+    setCancelLoad(true);
+    setLoading(false);
   };
   
   const renderStarRating = (rating) => {
@@ -81,18 +204,45 @@ export default function MovieDetails() {
   };
   
   if (loading) {
-    return <div className={styles.loading}>Загрузка...</div>;
+    return (
+      <div className={styles.loadingOverlay}>
+        <div className={styles.loadingContent}>
+          <h2>Загрузка</h2>
+          <div className={styles.spinner}></div>
+          <button 
+            className={styles.cancelButton}
+            onClick={handleCancelLoad}
+          >
+            Отменить
+          </button>
+        </div>
+      </div>
+    );
   }
   
   if (!movie) {
     return <div className={styles.error}>Фильм не найден</div>;
   }
   
+  // Получаем полный URL постера или создаем пустой блок при ошибке
+  const posterUrl = posterError ? null : (movie.poster_url || movie.poster_ur);
+  
   return (
     <div className={styles.container}>
       <div className={styles.content}>
         <div className={styles.posterContainer}>
-          <img src={movie.poster_ur} alt={movie.title} className={styles.poster} />
+          {posterUrl ? (
+            <img 
+              src={posterUrl} 
+              alt={movie.title} 
+              className={styles.poster} 
+              onError={handlePosterError}
+            />
+          ) : (
+            <div className={styles.emptyPoster}>
+              <span>{movie.title}</span>
+            </div>
+          )}
         </div>
         
         <div className={styles.detailsCard}>

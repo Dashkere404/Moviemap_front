@@ -197,6 +197,67 @@
   color: white;
 }
 
+/* Стили для нового индикатора загрузки */
+.loadingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.loadingContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #EFCFFF;
+}
+
+.loadingContent h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 10px solid rgba(239, 207, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #EFCFFF;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Стили для пустого постера */
+.emptyPoster {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  background-color: #2B275F;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #EFCFFF;
+  font-size: 18px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
 .error {
   display: flex;
   justify-content: center;
@@ -205,6 +266,28 @@
   width: 100%;
   font-size: 24px;
   color: #ff6b6b;
+}
+
+.cancelButton {
+  background-color: transparent;
+  border: 2px solid #EFCFFF;
+  color: #EFCFFF;
+  padding: 20px 30px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 30px;
+}
+
+.cancelButton:hover {
+  background-color: rgba(239, 207, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.cancelButton:active {
+  transform: scale(0.98);
 }
 
 
