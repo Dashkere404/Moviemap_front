@@ -2,20 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import styles from './FilterModal.module.css';
 
 export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, initialYearRange }) {
-  // Состояния для текущих значений ползунков
   const [minValue, setMinValue] = useState(initialYearRange?.minYear || minYear);
   const [maxValue, setMaxValue] = useState(initialYearRange?.maxYear || maxYear);
   const [activeThumb, setActiveThumb] = useState(null);
   
-  // Рефы для DOM-элементов
   const sliderRef = useRef(null);
   const minThumbRef = useRef(null);
   const maxThumbRef = useRef(null);
   
-  // Флаг для отслеживания состояния перетаскивания
   const isDraggingRef = useRef(false);
   
-  // Обновляем значения при изменении initialYearRange извне
   useEffect(() => {
     if (initialYearRange && !isDraggingRef.current) {
       setMinValue(initialYearRange.minYear);
@@ -23,21 +19,17 @@ export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, i
     }
   }, [initialYearRange]);
   
-  // Явно вызываем onChange при изменении значений
   useEffect(() => {
-    // Уведомляем родительский компонент об изменениях
     onChange({ 
       minYear: minValue, 
       maxYear: maxValue 
     });
   }, [minValue, maxValue, onChange]);
 
-  // Вычисляем процент для позиционирования ползунков
   const getPercent = (value) => {
     return ((value - minYear) / (maxYear - minYear)) * 100;
   };
 
-  // Вычисляем значение из позиции курсора
   const getValueFromPosition = (position) => {
     if (!sliderRef.current) return 0;
     
@@ -48,13 +40,11 @@ export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, i
     return Math.max(minYear, Math.min(maxYear, value));
   };
 
-  // Обработчик нажатия на ползунок (мышь)
   const handleThumbMouseDown = (e, thumb) => {
     e.preventDefault();
     setActiveThumb(thumb);
     isDraggingRef.current = true;
     
-    // Обработчик перемещения мыши
     const handleMouseMove = (moveEvent) => {
       if (!sliderRef.current) return;
       
@@ -67,12 +57,10 @@ export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, i
       }
     };
     
-    // Обработчик отпускания кнопки мыши
     const handleMouseUp = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
       
-      // Задержка для предотвращения мерцания
       setTimeout(() => {
         isDraggingRef.current = false;
         setActiveThumb(null);
@@ -83,13 +71,11 @@ export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, i
     document.addEventListener('mouseup', handleMouseUp);
   };
   
-  // Обработчик нажатия на ползунок (тач)
   const handleTouchStart = (e, thumb) => {
     e.preventDefault();
     setActiveThumb(thumb);
     isDraggingRef.current = true;
     
-    // Обработчик перемещения пальца
     const handleTouchMove = (moveEvent) => {
       if (!sliderRef.current || !moveEvent.touches[0]) return;
       
@@ -102,12 +88,10 @@ export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, i
       }
     };
     
-    // Обработчик отпускания пальца
     const handleTouchEnd = () => {
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
       
-      // Задержка для предотвращения мерцания
       setTimeout(() => {
         isDraggingRef.current = false;
         setActiveThumb(null);

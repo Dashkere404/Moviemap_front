@@ -15,10 +15,8 @@ export default function MovieDetails() {
   const [cancelLoad, setCancelLoad] = useState(false);
   
   useEffect(() => {
-    // Проверяем наличие параметра reset в URL
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.has('reset')) {
-      // Если параметр reset присутствует, перенаправляем на /main без state
       navigate('/main', { replace: true, state: null });
       return;
     }
@@ -28,12 +26,10 @@ export default function MovieDetails() {
 
     const fetchMovieDetails = async () => {
       try {
-        // Сбрасываем флаг отмены
         setCancelLoad(false);
         
         const response = await fetch(`${API_BASE_URL}/movie/${movieId}`);
         
-        // Проверяем, не была ли отменена загрузка
         if (cancelLoad) {
           return;
         }
@@ -43,12 +39,10 @@ export default function MovieDetails() {
         }
         const data = await response.json();
         
-        // Проверяем, не была ли отменена загрузка
         if (cancelLoad) {
           return;
         }
         
-        // Проверяем формат URL постера и добавляем базовый URL при необходимости
         if (data.poster_url && !data.poster_url.startsWith('http')) {
           data.poster_url = `https://image.tmdb.org/t/p/w500${data.poster_url}`;
         }
@@ -70,79 +64,67 @@ export default function MovieDetails() {
   
   const fetchSimilarMovies = async () => {
     try {
-      // Сбрасываем флаг отмены
       setCancelLoad(false);
       
-      // Показываем индикатор загрузки
       setLoading(true);
       
       const response = await fetch(`${API_BASE_URL}/recommend/similar-movies/${movieId}`);
       
-      // Проверяем, не была ли отменена загрузка
       if (cancelLoad) {
         setLoading(false);
         return;
       }
       
-      // Сначала получаем данные от API для проверки
       const data = await response.json();
       
-      // Проверяем, не была ли отменена загрузка
       if (cancelLoad) {
         setLoading(false);
         return;
       }
       
-      // Проверяем, содержит ли ответ сообщение об ошибке
       if (!response.ok || data.message) {
         console.log('Получен ответ с ошибкой:', data);
         
-        // Проверяем, не была ли отменена загрузка
         if (cancelLoad) {
           setLoading(false);
           return;
         }
         
-        // Переходим на страницу с похожими фильмами, но с пустым массивом
         navigate(`/similar/${movieId}`, {
           state: {
-            ...location.state, // Сохраняем весь предыдущий state
-            similarMovies: [], // Пустой массив фильмов
+            ...location.state,
+            similarMovies: [],
             movieTitle: movie?.title || 'Фильм',
-            originalMovieId: movieId, // Передаем ID оригинального фильма
-            fromMovieDetails: true, // Флаг, что переход был с детальной страницы фильма
-            noResultsMessage: 'Похожие фильмы не найдены' // Сообщение об ошибке
+            originalMovieId: movieId,
+            fromMovieDetails: true,
+            noResultsMessage: 'Похожие фильмы не найдены'
           }
         });
         return;
       }
       
-      // Проверяем, не была ли отменена загрузка
       if (cancelLoad) {
         setLoading(false);
         return;
       }
       
-      // Если ответ успешный, переходим на страницу с похожими фильмами
       navigate(`/similar/${movieId}`, {
         state: {
-          ...location.state, // Сохраняем весь предыдущий state
+          ...location.state,
           similarMovies: data.recommendations,
           movieTitle: movie?.title || 'Фильм',
-          originalMovieId: movieId, // Передаем ID оригинального фильма
-          fromMovieDetails: true // Флаг, что переход был с детальной страницы фильма
+          originalMovieId: movieId,
+          fromMovieDetails: true
         }
       });
     } catch (error) {
       console.error('Ошибка при получении похожих фильмов:', error);
       
-      // Проверяем, не была ли отменена загрузка
       if (cancelLoad) {
         setLoading(false);
         return;
       }
       
-      // В случае непредвиденной ошибки также переходим на страницу с похожими фильмами
       navigate(`/similar/${movieId}`, {
         state: {
           ...location.state,
@@ -150,7 +132,6 @@ export default function MovieDetails() {
           movieTitle: movie?.title || 'Фильм',
           originalMovieId: movieId,
           fromMovieDetails: true,
-          // noResultsMessage: 'Произошла ошибка при поиске похожих фильмов'
           noResultsMessage: 'Похожие фильмы не найдены.'
         }
       });
@@ -179,7 +160,6 @@ export default function MovieDetails() {
     setPosterError(true);
   };
   
-  // Функция для обработки отмены загрузки
   const handleCancelLoad = () => {
     setCancelLoad(true);
     setLoading(false);
@@ -224,7 +204,6 @@ export default function MovieDetails() {
     return <div className={styles.error}>Фильм не найден</div>;
   }
   
-  // Получаем полный URL постера или создаем пустой блок при ошибке
   const posterUrl = posterError ? null : (movie.poster_url || movie.poster_ur);
   
   return (

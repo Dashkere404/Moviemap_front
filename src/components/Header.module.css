@@ -30,7 +30,6 @@
   opacity: 0.5;
 } 
 
-/* Новые стили для обновленного хедера */
 .headerContent {
   display: flex;
   justify-content: space-between;
