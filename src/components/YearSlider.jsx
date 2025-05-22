@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import styles from './FilterModal.module.css';
+import { useState, useEffect, useRef } from "react";
+import styles from "./FilterModal.module.css";
 
+<<<<<<< HEAD
 export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, initialYearRange }) {
   const [minValue, setMinValue] = useState(initialYearRange?.minYear || minYear);
   const [maxValue, setMaxValue] = useState(initialYearRange?.maxYear || maxYear);
@@ -12,17 +13,53 @@ export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, i
   
   const isDraggingRef = useRef(false);
   
+=======
+export default function YearSlider({
+  minYear = 1874,
+  maxYear = 2016,
+  onChange,
+  initialYearRange,
+}) {
+  // Состояния для текущих значений ползунков
+  const [minValue, setMinValue] = useState(
+    initialYearRange?.minYear || minYear,
+  );
+  const [maxValue, setMaxValue] = useState(
+    initialYearRange?.maxYear || maxYear,
+  );
+  const [activeThumb, setActiveThumb] = useState(null);
+
+  // Рефы для DOM-элементов
+  const sliderRef = useRef(null);
+  const minThumbRef = useRef(null);
+  const maxThumbRef = useRef(null);
+
+  // Флаг для отслеживания состояния перетаскивания
+  const isDraggingRef = useRef(false);
+
+  // Обновляем значения при изменении initialYearRange извне
+>>>>>>> d81d734 (test husky)
   useEffect(() => {
     if (initialYearRange && !isDraggingRef.current) {
       setMinValue(initialYearRange.minYear);
       setMaxValue(initialYearRange.maxYear);
     }
   }, [initialYearRange]);
+<<<<<<< HEAD
   
   useEffect(() => {
     onChange({ 
       minYear: minValue, 
       maxYear: maxValue 
+=======
+
+  // Явно вызываем onChange при изменении значений
+  useEffect(() => {
+    // Уведомляем родительский компонент об изменениях
+    onChange({
+      minYear: minValue,
+      maxYear: maxValue,
+>>>>>>> d81d734 (test husky)
     });
   }, [minValue, maxValue, onChange]);
 
@@ -32,11 +69,11 @@ export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, i
 
   const getValueFromPosition = (position) => {
     if (!sliderRef.current) return 0;
-    
+
     const sliderRect = sliderRef.current.getBoundingClientRect();
     const percent = (position - sliderRect.left) / sliderRect.width;
     const value = Math.round(minYear + percent * (maxYear - minYear));
-    
+
     return Math.max(minYear, Math.min(maxYear, value));
   };
 
@@ -44,62 +81,97 @@ export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, i
     e.preventDefault();
     setActiveThumb(thumb);
     isDraggingRef.current = true;
+<<<<<<< HEAD
     
+=======
+
+    // Обработчик перемещения мыши
+>>>>>>> d81d734 (test husky)
     const handleMouseMove = (moveEvent) => {
       if (!sliderRef.current) return;
-      
+
       const newValue = getValueFromPosition(moveEvent.clientX);
-      
-      if (thumb === 'min' && newValue < maxValue) {
+
+      if (thumb === "min" && newValue < maxValue) {
         setMinValue(newValue);
-      } else if (thumb === 'max' && newValue > minValue) {
+      } else if (thumb === "max" && newValue > minValue) {
         setMaxValue(newValue);
       }
     };
+<<<<<<< HEAD
     
     const handleMouseUp = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
       
+=======
+
+    // Обработчик отпускания кнопки мыши
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+
+      // Задержка для предотвращения мерцания
+>>>>>>> d81d734 (test husky)
       setTimeout(() => {
         isDraggingRef.current = false;
         setActiveThumb(null);
       }, 50);
     };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
   };
+<<<<<<< HEAD
   
+=======
+
+  // Обработчик нажатия на ползунок (тач)
+>>>>>>> d81d734 (test husky)
   const handleTouchStart = (e, thumb) => {
     e.preventDefault();
     setActiveThumb(thumb);
     isDraggingRef.current = true;
+<<<<<<< HEAD
     
+=======
+
+    // Обработчик перемещения пальца
+>>>>>>> d81d734 (test husky)
     const handleTouchMove = (moveEvent) => {
       if (!sliderRef.current || !moveEvent.touches[0]) return;
-      
+
       const newValue = getValueFromPosition(moveEvent.touches[0].clientX);
-      
-      if (thumb === 'min' && newValue < maxValue) {
+
+      if (thumb === "min" && newValue < maxValue) {
         setMinValue(newValue);
-      } else if (thumb === 'max' && newValue > minValue) {
+      } else if (thumb === "max" && newValue > minValue) {
         setMaxValue(newValue);
       }
     };
+<<<<<<< HEAD
     
     const handleTouchEnd = () => {
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
       
+=======
+
+    // Обработчик отпускания пальца
+    const handleTouchEnd = () => {
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+
+      // Задержка для предотвращения мерцания
+>>>>>>> d81d734 (test husky)
       setTimeout(() => {
         isDraggingRef.current = false;
         setActiveThumb(null);
       }, 50);
     };
-    
-    document.addEventListener('touchmove', handleTouchMove);
-    document.addEventListener('touchend', handleTouchEnd);
+
+    document.addEventListener("touchmove", handleTouchMove);
+    document.addEventListener("touchend", handleTouchEnd);
   };
 
   return (
@@ -107,23 +179,23 @@ export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, i
       <div className={styles.yearSlider} ref={sliderRef}>
         {/* Track background */}
         <div className={styles.sliderBackground}></div>
-        
+
         {/* Active track */}
         <div
           className={styles.sliderTrack}
           style={{
             left: `${getPercent(minValue)}%`,
-            width: `${getPercent(maxValue) - getPercent(minValue)}%`
+            width: `${getPercent(maxValue) - getPercent(minValue)}%`,
           }}
         />
-        
+
         {/* Min thumb */}
-        <div 
-          className={`${styles.sliderThumb} ${activeThumb === 'min' ? styles.active : ''}`}
+        <div
+          className={`${styles.sliderThumb} ${activeThumb === "min" ? styles.active : ""}`}
           ref={minThumbRef}
           style={{ left: `${getPercent(minValue)}%` }}
-          onMouseDown={(e) => handleThumbMouseDown(e, 'min')}
-          onTouchStart={(e) => handleTouchStart(e, 'min')}
+          onMouseDown={(e) => handleThumbMouseDown(e, "min")}
+          onTouchStart={(e) => handleTouchStart(e, "min")}
           role="slider"
           aria-valuemin={minYear}
           aria-valuemax={maxYear}
@@ -132,14 +204,14 @@ export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, i
         >
           <div className={styles.valueLabel}>{minValue}</div>
         </div>
-        
+
         {/* Max thumb */}
-        <div 
-          className={`${styles.sliderThumb} ${activeThumb === 'max' ? styles.active : ''}`}
+        <div
+          className={`${styles.sliderThumb} ${activeThumb === "max" ? styles.active : ""}`}
           ref={maxThumbRef}
           style={{ left: `${getPercent(maxValue)}%` }}
-          onMouseDown={(e) => handleThumbMouseDown(e, 'max')}
-          onTouchStart={(e) => handleTouchStart(e, 'max')}
+          onMouseDown={(e) => handleThumbMouseDown(e, "max")}
+          onTouchStart={(e) => handleTouchStart(e, "max")}
           role="slider"
           aria-valuemin={minYear}
           aria-valuemax={maxYear}
@@ -149,25 +221,17 @@ export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, i
           <div className={styles.valueLabel}>{maxValue}</div>
         </div>
       </div>
-      
+
       {/* Отображение текущего диапазона - скрываем */}
       {/*
       <div className={styles.yearRangeDisplay}>
         Выбран диапазон: {minValue} - {maxValue}
       </div>
       */}
-      
+
       {/* Hidden inputs for form submission and accessibility */}
-      <input
-        type="hidden"
-        name="min-year"
-        value={minValue}
-      />
-      <input
-        type="hidden"
-        name="max-year"
-        value={maxValue}
-      />
+      <input type="hidden" name="min-year" value={minValue} />
+      <input type="hidden" name="max-year" value={maxValue} />
     </div>
   );
-} 
+}

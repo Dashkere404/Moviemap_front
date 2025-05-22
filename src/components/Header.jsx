@@ -1,17 +1,18 @@
-import logomap from '../assets/logomap.svg';
-import styles from './Header.module.css';
-import { useNavigate, useLocation } from 'react-router-dom';
+import logomap from "../assets/logomap.svg";
+import styles from "./Header.module.css";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
-  const isWelcomePage = location.pathname === '/';
+  const isWelcomePage = location.pathname === "/";
 
   const handleHomeClick = () => {
     const timestamp = new Date().getTime();
-    navigate(`/main?reset=${timestamp}`, { 
+    navigate(`/main?reset=${timestamp}`, {
       replace: true,
       state: null 
+
     });
   };
 

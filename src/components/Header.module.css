@@ -20,7 +20,7 @@
   color: var(--light-pink);
   font-size: 1.5rem;
   font-weight: 100;
-} 
+}
 
 .logoContainer {
   display: flex;
@@ -28,7 +28,7 @@
   justify-content: center;
   gap: 20px;
   opacity: 0.5;
-} 
+}
 
 .headerContent {
   display: flex;
@@ -75,5 +75,3 @@
 .spacer {
   width: 100px;
 }
-
-

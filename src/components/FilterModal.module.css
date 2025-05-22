@@ -13,35 +13,58 @@
 }
 
 .modal {
-  background-color: #2B275F;
+  background-color: #2b275f;
   border-radius: 30px;
   width: 75%;
   max-width: 1200px;
   min-width: 400px;
-  padding: 50px;
+  max-height: 80vh;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   position: relative;
   will-change: transform;
+  display: flex;
+  flex-direction: column;
 }
 
 .modalHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  padding: 30px 50px 20px;
+  border-bottom: 1px solid rgba(239, 207, 255, 0.2);
+  background-color: #2b275f;
+  border-radius: 30px 30px 0 0;
 }
 
 .modalTitle {
-  color: #EFCFFF;
+  color: #efcfff;
   font-size: 26px;
   font-weight: 600;
   margin: 0;
 }
 
+.modalSubtitle {
+  color: #efcfff;
+  font-size: 22px;
+  font-weight: 500;
+  margin: 40px 0 15px;
+  border-bottom: 1px solid rgba(239, 207, 255, 0.3);
+  padding-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.filterIcon {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  font-size: 14px;
+}
+
 .closeButton {
   background: transparent;
   border: none;
-  color: #EFCFFF;
+  color: #efcfff;
   font-size: 40px;
   cursor: pointer;
   padding: 5px;
@@ -49,41 +72,54 @@
 }
 
 .modalContent {
-  margin-bottom: 30px;
-  max-height: 500px;
+  padding: 20px 100px;
   overflow-y: auto;
-  padding: 10px;
+  flex-grow: 1;
 }
 
 .modalFooter {
   display: flex;
   justify-content: flex-end;
   gap: 15px;
+  padding: 20px 50px 30px;
+  border-top: 1px solid rgba(239, 207, 255, 0.2);
+  background-color: #2b275f;
+  border-radius: 0 0 30px 30px;
 }
 
-.applyButton, .resetButton {
-  padding: 15px 40px;
+.applyButton,
+.resetButton,
+.resetApplyButton {
+  padding: 15px 30px;
   border-radius: 20px;
   font-weight: 600;
-  font-size: 20px;
+  font-size: 18px;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-right: 30px;
+  margin-right: 10px;
 }
 
 .applyButton {
-  background-color: #EFCFFF;
+  background-color: #efcfff;
   color: #030213;
   border: none;
 }
 
 .resetButton {
   background-color: transparent;
-  color: #EFCFFF;
-  border: 1px solid #EFCFFF;
+  color: #efcfff;
+  border: 1px solid #efcfff;
 }
 
-.applyButton:hover, .resetButton:hover {
+.resetApplyButton {
+  background-color: rgba(239, 207, 255, 0.2);
+  color: #efcfff;
+  border: 1px solid #efcfff;
+}
+
+.applyButton:hover,
+.resetButton:hover,
+.resetApplyButton:hover {
   transform: scale(1.05);
 }
 
@@ -91,10 +127,9 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(140px, 1fr));
   grid-auto-rows: minmax(45px, auto);
-  gap: 20px;
-  margin-top: 30px;
+  gap: 15px;
+  margin-top: 20px;
   justify-content: center;
-  padding: 0 20px;
 }
 
 .filterCheckbox {
@@ -103,13 +138,14 @@
   margin-bottom: 10px;
 }
 
-.checkbox, .radioInput {
+.checkbox,
+.radioInput {
   appearance: none;
   -webkit-appearance: none;
   width: 30px;
   height: 30px;
   min-width: 30px;
-  border: 2px solid #EFCFFF;
+  border: 2px solid #efcfff;
   background-color: transparent;
   margin-right: 10px;
   cursor: pointer;
@@ -127,11 +163,11 @@
 .checkbox:checked::after {
   content: "✓";
   position: absolute;
-  color: #EFCFFF;
+  color: #efcfff;
   font-size: 18px;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(50%, 50%);
 }
 
 .radioInput:checked::after {
@@ -139,7 +175,7 @@
   position: absolute;
   width: 16px;
   height: 16px;
-  background-color: #EFCFFF;
+  background-color: #efcfff;
   border-radius: 50%;
   top: 50%;
   left: 50%;
@@ -148,10 +184,10 @@
 
 .filterOption {
   background-color: rgba(239, 207, 255, 0.1);
-  border: 2px solid #EFCFFF;
+  border: 2px solid #efcfff;
   border-radius: 15px;
-  padding: 0 20px;
-  color: #EFCFFF;
+  padding: 0 15px;
+  color: #efcfff;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -160,9 +196,9 @@
   transition: all 0.2s ease;
   width: 100%;
   height: 100%;
-  min-height: 80px;
+  min-height: 60px;
   text-align: left;
-  font-size: 18px;
+  font-size: 16px;
   overflow: hidden;
   position: relative;
 }
@@ -179,18 +215,18 @@
 
 .filterOption.active {
   background-color: rgba(239, 207, 255, 0.3);
-  border-color: #EFCFFF;
+  border-color: #efcfff;
 }
 
 .rangeContainer {
-  margin-top: 40px;
+  margin-top: 20px;
   position: relative;
-  padding: 30px 100px 10px;
+  padding: 20px 50px 10px;
 }
 
 .yearSlider {
-  margin-top: 40px;
-  margin-bottom: 40px;
+  margin-top: 50px;
+  margin-bottom: 30px;
   width: 100%;
   height: 5px;
   position: relative;
@@ -207,25 +243,29 @@
 
 .sliderTrack {
   height: 5px;
-  background: #EFCFFF;
+  background: #efcfff;
   border-radius: 5px;
   position: absolute;
   will-change: left, width;
-  transition: left 0.05s ease, width 0.05s ease;
+  transition:
+    left 0.05s ease,
+    width 0.05s ease;
 }
 
 .sliderThumb {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #EFCFFF;
+  background: #efcfff;
   position: absolute;
   top: -12px;
   margin-left: -14px;
   cursor: grab;
   z-index: 3;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  transition: transform 0.1s ease, background-color 0.2s ease;
+  transition:
+    transform 0.1s ease,
+    background-color 0.2s ease;
   touch-action: none;
   will-change: transform, left;
 }
@@ -235,7 +275,8 @@
   background-color: #f5e0ff;
 }
 
-.sliderThumb:active, .sliderThumb.active {
+.sliderThumb:active,
+.sliderThumb.active {
   transform: scale(1.15);
   cursor: grabbing;
   background-color: #d8a6ff;
@@ -246,8 +287,8 @@
 .valueLabel {
   position: absolute;
   background-color: rgba(239, 207, 255, 0.2);
-  border: 1px solid #EFCFFF;
-  color: #EFCFFF;
+  border: 1px solid #efcfff;
+  color: #efcfff;
   padding: 10px 20px;
   border-radius: 10px;
   font-size: 20px;
@@ -271,18 +312,17 @@
 
 .ratingOptions {
   display: grid;
-  grid-template-columns: repeat(5, minmax(100px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(5, minmax(80px, 1fr));
+  gap: 15px;
   justify-content: center;
-  margin: 30px auto;
-  max-width: 80%;
+  margin: 20px auto;
 }
 
 .bestFirstOption {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 50px;
+  margin-top: 30px;
 }
 
 .bestFirstOption .filterOption {
@@ -303,8 +343,85 @@
   align-items: center;
 }
 
+<<<<<<< HEAD
 .applyButton:disabled, .resetButton:disabled {
+=======
+/* Стили для отключенных кнопок */
+.applyButton:disabled,
+.resetButton:disabled {
+>>>>>>> d81d734 (test husky)
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
-} 
+}
+
+/* Стили для чекбоксов */
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
+}
+
+.customCheckbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #efcfff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.customCheckbox.checked {
+  background-color: rgba(239, 207, 255, 0.3);
+}
+
+.checkmark {
+  color: #efcfff;
+  font-size: 16px;
+  line-height: 1;
+  position: absolute;
+  top: 50%;
+  left: 25%;
+  transform: translate(-50%, -50%);
+}
+
+/* Стили для радиокнопок */
+.radioContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
+}
+
+.customRadio {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #efcfff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.customRadio.checked {
+  background-color: rgba(239, 207, 255, 0.3);
+}
+
+.radioDot {
+  width: 12px;
+  height: 12px;
+  background-color: #efcfff;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 25%;
+  transform: translate(-50%, -50%);
+}

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap");
 
 .container {
   position: fixed;
@@ -13,9 +13,9 @@
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  z-index: 1000;
+  z-index: 5;
   overflow-y: auto;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
 }
 
 .content {
@@ -59,7 +59,6 @@
   text-align: left;
 }
 
-
 .titleAndBackButtonContainer {
   position: relative;
   display: flex;
@@ -80,7 +79,6 @@
   cursor: pointer;
 }
 
-
 .backButtonIcon {
   position: relative;
   width: 30px;
@@ -92,7 +90,7 @@
 
 .backButtonIcon:hover {
   transform: scale(1.2);
-} 
+}
 
 .starRating {
   display: flex;
@@ -101,7 +99,9 @@
   font-size: 50px;
 }
 
-.starFull, .starHalf, .starEmpty {
+.starFull,
+.starHalf,
+.starEmpty {
   margin-right: 5px;
 }
 
@@ -112,12 +112,11 @@
 .starHalf {
   background: linear-gradient(90deg, var(--rating) 50%, transparent 40%);
   -webkit-text-stroke: 1px var(--rating);
-  background-clip: text; 
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   color: var(--rating);
 }
-
 
 .starEmpty {
   color: transparent;
@@ -216,7 +215,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #EFCFFF;
+  color: #efcfff;
 }
 
 .loadingContent h2 {
@@ -230,7 +229,7 @@
   height: 60px;
   border: 10px solid rgba(239, 207, 255, 0.3);
   border-radius: 50%;
-  border-top-color: #EFCFFF;
+  border-top-color: #efcfff;
   animation: spin 1s ease-in-out infinite;
   margin-bottom: 20px;
 }
@@ -246,12 +245,12 @@
   width: 100%;
   height: 100%;
   min-height: 400px;
-  background-color: #2B275F;
+  background-color: #2b275f;
   border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #EFCFFF;
+  color: #efcfff;
   font-size: 18px;
   padding: 20px;
   text-align: center;
@@ -270,8 +269,8 @@
 
 .cancelButton {
   background-color: transparent;
-  border: 2px solid #EFCFFF;
-  color: #EFCFFF;
+  border: 2px solid #efcfff;
+  color: #efcfff;
   padding: 20px 30px;
   border-radius: 30px;
   font-size: 18px;
@@ -289,5 +288,3 @@
 .cancelButton:active {
   transform: scale(0.98);
 }
-
-

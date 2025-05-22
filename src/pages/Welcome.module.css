@@ -17,7 +17,11 @@
   flex: 1;
   max-width: 1300px;
   padding: 5rem 6rem;
-  background: linear-gradient(to bottom, var(--dark-head), var(--violet-window));
+  background: linear-gradient(
+    to bottom,
+    var(--dark-head),
+    var(--violet-window)
+  );
   border-radius: 50px;
 }
 
@@ -79,9 +83,8 @@
   height: 60px;
   transition: transform 0.3s ease;
   cursor: pointer;
-} 
+}
 
 .mapPin:hover {
   transform: translate(-50%, -50%) scale(1.2);
 }
-
