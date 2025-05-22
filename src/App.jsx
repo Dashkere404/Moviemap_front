@@ -14,11 +14,7 @@ import "./styles/global.css";
 import "./styles/fix-scroll.css";
 
 // Базовый URL API
-<<<<<<< HEAD
-export const API_BASE_URL = 'https://thirty-cars-knock.loca.lt';
-=======
 export const API_BASE_URL = "http://127.0.0.1:8000";
->>>>>>> d81d734 (test husky)
 
 // Background component that shows stars on all pages and posters only on welcome page
 function Background() {

@@ -58,7 +58,6 @@
   width: 24px;
   height: 24px;
   margin-right: 10px;
-  font-size: 14px;
 }
 
 .closeButton {
@@ -123,6 +122,7 @@
   transform: scale(1.05);
 }
 
+/* Styles for filter content */
 .filterGroup {
   display: grid;
   grid-template-columns: repeat(3, minmax(140px, 1fr));
@@ -218,6 +218,7 @@
   border-color: #efcfff;
 }
 
+/* Year range slider styles */
 .rangeContainer {
   margin-top: 20px;
   position: relative;
@@ -310,6 +311,7 @@
   cursor: pointer;
 }
 
+/* Rating styles */
 .ratingOptions {
   display: grid;
   grid-template-columns: repeat(5, minmax(80px, 1fr));
@@ -330,6 +332,7 @@
   max-width: 250px;
 }
 
+/* Добавляем стили для отображения диапазона годов */
 .yearRangeDisplay {
   margin-top: 15px;
   text-align: center;
@@ -343,13 +346,9 @@
   align-items: center;
 }
 
-<<<<<<< HEAD
-.applyButton:disabled, .resetButton:disabled {
-=======
 /* Стили для отключенных кнопок */
 .applyButton:disabled,
 .resetButton:disabled {
->>>>>>> d81d734 (test husky)
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;

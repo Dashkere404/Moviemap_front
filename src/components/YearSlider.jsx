@@ -1,19 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import styles from "./FilterModal.module.css";
 
-<<<<<<< HEAD
-export default function YearSlider({ minYear = 1874, maxYear = 2016, onChange, initialYearRange }) {
-  const [minValue, setMinValue] = useState(initialYearRange?.minYear || minYear);
-  const [maxValue, setMaxValue] = useState(initialYearRange?.maxYear || maxYear);
-  const [activeThumb, setActiveThumb] = useState(null);
-  
-  const sliderRef = useRef(null);
-  const minThumbRef = useRef(null);
-  const maxThumbRef = useRef(null);
-  
-  const isDraggingRef = useRef(false);
-  
-=======
 export default function YearSlider({
   minYear = 1874,
   maxYear = 2016,
@@ -38,20 +25,12 @@ export default function YearSlider({
   const isDraggingRef = useRef(false);
 
   // Обновляем значения при изменении initialYearRange извне
->>>>>>> d81d734 (test husky)
   useEffect(() => {
     if (initialYearRange && !isDraggingRef.current) {
       setMinValue(initialYearRange.minYear);
       setMaxValue(initialYearRange.maxYear);
     }
   }, [initialYearRange]);
-<<<<<<< HEAD
-  
-  useEffect(() => {
-    onChange({ 
-      minYear: minValue, 
-      maxYear: maxValue 
-=======
 
   // Явно вызываем onChange при изменении значений
   useEffect(() => {
@@ -59,14 +38,15 @@ export default function YearSlider({
     onChange({
       minYear: minValue,
       maxYear: maxValue,
->>>>>>> d81d734 (test husky)
     });
   }, [minValue, maxValue, onChange]);
 
+  // Вычисляем процент для позиционирования ползунков
   const getPercent = (value) => {
     return ((value - minYear) / (maxYear - minYear)) * 100;
   };
 
+  // Вычисляем значение из позиции курсора
   const getValueFromPosition = (position) => {
     if (!sliderRef.current) return 0;
 
@@ -77,16 +57,13 @@ export default function YearSlider({
     return Math.max(minYear, Math.min(maxYear, value));
   };
 
+  // Обработчик нажатия на ползунок (мышь)
   const handleThumbMouseDown = (e, thumb) => {
     e.preventDefault();
     setActiveThumb(thumb);
     isDraggingRef.current = true;
-<<<<<<< HEAD
-    
-=======
 
     // Обработчик перемещения мыши
->>>>>>> d81d734 (test husky)
     const handleMouseMove = (moveEvent) => {
       if (!sliderRef.current) return;
 
@@ -98,13 +75,6 @@ export default function YearSlider({
         setMaxValue(newValue);
       }
     };
-<<<<<<< HEAD
-    
-    const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      
-=======
 
     // Обработчик отпускания кнопки мыши
     const handleMouseUp = () => {
@@ -112,7 +82,6 @@ export default function YearSlider({
       document.removeEventListener("mouseup", handleMouseUp);
 
       // Задержка для предотвращения мерцания
->>>>>>> d81d734 (test husky)
       setTimeout(() => {
         isDraggingRef.current = false;
         setActiveThumb(null);
@@ -122,22 +91,14 @@ export default function YearSlider({
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
   };
-<<<<<<< HEAD
-  
-=======
 
   // Обработчик нажатия на ползунок (тач)
->>>>>>> d81d734 (test husky)
   const handleTouchStart = (e, thumb) => {
     e.preventDefault();
     setActiveThumb(thumb);
     isDraggingRef.current = true;
-<<<<<<< HEAD
-    
-=======
 
     // Обработчик перемещения пальца
->>>>>>> d81d734 (test husky)
     const handleTouchMove = (moveEvent) => {
       if (!sliderRef.current || !moveEvent.touches[0]) return;
 
@@ -149,13 +110,6 @@ export default function YearSlider({
         setMaxValue(newValue);
       }
     };
-<<<<<<< HEAD
-    
-    const handleTouchEnd = () => {
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
-      
-=======
 
     // Обработчик отпускания пальца
     const handleTouchEnd = () => {
@@ -163,7 +117,6 @@ export default function YearSlider({
       document.removeEventListener("touchend", handleTouchEnd);
 
       // Задержка для предотвращения мерцания
->>>>>>> d81d734 (test husky)
       setTimeout(() => {
         isDraggingRef.current = false;
         setActiveThumb(null);

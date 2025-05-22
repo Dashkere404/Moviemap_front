@@ -16,15 +16,10 @@ export default function MovieDetails() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-<<<<<<< HEAD:src/components/MovieDetails.jsx
-    if (urlParams.has('reset')) {
-      navigate('/main', { replace: true, state: null });
-=======
     if (urlParams.has("reset")) {
       // Если параметр reset присутствует, перенаправляем на /main с параметром reset
       const timestamp = new Date().getTime();
       navigate(`/main?reset=${timestamp}`, { replace: true, state: null });
->>>>>>> d81d734 (test husky):src/pages/MovieDetails.jsx
       return;
     }
 
@@ -36,12 +31,8 @@ export default function MovieDetails() {
         setCancelLoad(false);
 
         const response = await fetch(`${API_BASE_URL}/movie/${movieId}`);
-<<<<<<< HEAD:src/components/MovieDetails.jsx
-        
-=======
 
         // Проверяем, не была ли отменена загрузка
->>>>>>> d81d734 (test husky):src/pages/MovieDetails.jsx
         if (cancelLoad) {
           return;
         }
@@ -50,14 +41,6 @@ export default function MovieDetails() {
           throw new Error("Не удалось получить данные о фильме");
         }
         const data = await response.json();
-<<<<<<< HEAD:src/components/MovieDetails.jsx
-        
-        if (cancelLoad) {
-          return;
-        }
-        
-        if (data.poster_url && !data.poster_url.startsWith('http')) {
-=======
 
         // Проверяем, не была ли отменена загрузка
         if (cancelLoad) {
@@ -66,7 +49,6 @@ export default function MovieDetails() {
 
         // Проверяем формат URL постера и добавляем базовый URL при необходимости
         if (data.poster_url && !data.poster_url.startsWith("http")) {
->>>>>>> d81d734 (test husky):src/pages/MovieDetails.jsx
           data.poster_url = `https://image.tmdb.org/t/p/w500${data.poster_url}`;
         }
 
@@ -88,13 +70,6 @@ export default function MovieDetails() {
   const fetchSimilarMovies = async () => {
     try {
       setCancelLoad(false);
-<<<<<<< HEAD:src/components/MovieDetails.jsx
-      
-      setLoading(true);
-      
-      const response = await fetch(`${API_BASE_URL}/recommend/similar-movies/${movieId}`);
-      
-=======
 
       // Показываем индикатор загрузки
       setLoading(true);
@@ -104,76 +79,29 @@ export default function MovieDetails() {
       );
 
       // Проверяем, не была ли отменена загрузка
->>>>>>> d81d734 (test husky):src/pages/MovieDetails.jsx
       if (cancelLoad) {
         setLoading(false);
         return;
       }
-<<<<<<< HEAD:src/components/MovieDetails.jsx
-      
-      const data = await response.json();
-      
-=======
 
       // Сначала получаем данные от API для проверки
       const data = await response.json();
 
       // Проверяем, не была ли отменена загрузка
->>>>>>> d81d734 (test husky):src/pages/MovieDetails.jsx
       if (cancelLoad) {
         setLoading(false);
         return;
       }
-<<<<<<< HEAD:src/components/MovieDetails.jsx
-      
-      if (!response.ok || data.message) {
-        console.log('Получен ответ с ошибкой:', data);
-        
-=======
 
       // Проверяем, содержит ли ответ сообщение об ошибке
       if (!response.ok || data.message) {
         console.log("Получен ответ с ошибкой:", data);
 
         // Проверяем, не была ли отменена загрузка
->>>>>>> d81d734 (test husky):src/pages/MovieDetails.jsx
         if (cancelLoad) {
           setLoading(false);
           return;
         }
-<<<<<<< HEAD:src/components/MovieDetails.jsx
-        
-        navigate(`/similar/${movieId}`, {
-          state: {
-            ...location.state,
-            similarMovies: [],
-            movieTitle: movie?.title || 'Фильм',
-            originalMovieId: movieId,
-            fromMovieDetails: true,
-            noResultsMessage: 'Похожие фильмы не найдены'
-          }
-        });
-        return;
-      }
-      
-      if (cancelLoad) {
-        setLoading(false);
-        return;
-      }
-      
-      navigate(`/similar/${movieId}`, {
-        state: {
-          ...location.state,
-          similarMovies: data.recommendations,
-          movieTitle: movie?.title || 'Фильм',
-          originalMovieId: movieId,
-          fromMovieDetails: true
-        }
-      });
-    } catch (error) {
-      console.error('Ошибка при получении похожих фильмов:', error);
-      
-=======
 
         // Сохраняем информацию о пути пользователя
         const stateToPass = {
@@ -197,25 +125,10 @@ export default function MovieDetails() {
       }
 
       // Проверяем, не была ли отменена загрузка
->>>>>>> d81d734 (test husky):src/pages/MovieDetails.jsx
       if (cancelLoad) {
         setLoading(false);
         return;
       }
-<<<<<<< HEAD:src/components/MovieDetails.jsx
-      
-      navigate(`/similar/${movieId}`, {
-        state: {
-          ...location.state,
-          similarMovies: [],
-          movieTitle: movie?.title || 'Фильм',
-          originalMovieId: movieId,
-          fromMovieDetails: true,
-          noResultsMessage: 'Похожие фильмы не найдены.'
-        }
-      });
-      
-=======
 
       // Сохраняем информацию о пути пользователя
       const stateToPass = {
@@ -262,7 +175,6 @@ export default function MovieDetails() {
       // В случае непредвиденной ошибки также переходим на страницу с похожими фильмами
       navigate(`/similar/${movieId}`, { state: stateToPass });
 
->>>>>>> d81d734 (test husky):src/pages/MovieDetails.jsx
       setLoading(false);
     }
   };
@@ -293,12 +205,8 @@ export default function MovieDetails() {
   const handlePosterError = () => {
     setPosterError(true);
   };
-<<<<<<< HEAD:src/components/MovieDetails.jsx
-  
-=======
 
   // Функция для обработки отмены загрузки
->>>>>>> d81d734 (test husky):src/pages/MovieDetails.jsx
   const handleCancelLoad = () => {
     setCancelLoad(true);
     setLoading(false);
@@ -343,16 +251,10 @@ export default function MovieDetails() {
   if (!movie) {
     return <div className={styles.error}>Фильм не найден</div>;
   }
-<<<<<<< HEAD:src/components/MovieDetails.jsx
-  
-  const posterUrl = posterError ? null : (movie.poster_url || movie.poster_ur);
-  
-=======
 
   // Получаем полный URL постера или создаем пустой блок при ошибке
   const posterUrl = posterError ? null : movie.poster_url || movie.poster_ur;
 
->>>>>>> d81d734 (test husky):src/pages/MovieDetails.jsx
   return (
     <div className={styles.container}>
       <div className={styles.content}>
