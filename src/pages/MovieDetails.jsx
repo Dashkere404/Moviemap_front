@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import styles from "./MovieDetails.module.css";
 import mask from "../assets/mask.svg";
 import backButton from "../assets/back-button.svg";
-import { API_BASE_URL } from "../App";
+import { API_BASE_URL, POSTER_BASE_URL } from "../App";
 
 export default function MovieDetails() {
   const { movieId } = useParams();
@@ -13,11 +13,20 @@ export default function MovieDetails() {
   const [loading, setLoading] = useState(true);
   const [posterError, setPosterError] = useState(false);
   const [cancelLoad, setCancelLoad] = useState(false);
+  const [error, setError] = useState(false);
+  const abortControllerRef = useRef(null);
+  const initialRenderRef = useRef(true);
 
   useEffect(() => {
+    setLoading(true);
+    setMovie(null);
+    setError(false);
+    setCancelLoad(false);
+    
+    initialRenderRef.current = false;
+    
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.has("reset")) {
-      // Если параметр reset присутствует, перенаправляем на /main с параметром reset
       const timestamp = new Date().getTime();
       navigate(`/main?reset=${timestamp}`, { replace: true, state: null });
       return;
@@ -25,15 +34,21 @@ export default function MovieDetails() {
 
     window.scrollTo(0, 0);
     document.body.style.overflow = "hidden";
-
+    
     const fetchMovieDetails = async () => {
       try {
         setCancelLoad(false);
+        
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+        const signal = abortControllerRef.current.signal;
 
-        const response = await fetch(`${API_BASE_URL}/movie/${movieId}`);
+        const response = await fetch(`${API_BASE_URL}/movie/${movieId}`, { signal });
 
-        // Проверяем, не была ли отменена загрузка
         if (cancelLoad) {
+          setLoading(false);
           return;
         }
 
@@ -42,28 +57,41 @@ export default function MovieDetails() {
         }
         const data = await response.json();
 
-        // Проверяем, не была ли отменена загрузка
         if (cancelLoad) {
+          setLoading(false);
           return;
         }
 
-        // Проверяем формат URL постера и добавляем базовый URL при необходимости
         if (data.poster_url && !data.poster_url.startsWith("http")) {
-          data.poster_url = `https://image.tmdb.org/t/p/w500${data.poster_url}`;
+          data.poster_url = `${POSTER_BASE_URL}${data.poster_url}`;
         }
 
         setMovie(data);
+        setError(false);
         setLoading(false);
       } catch (error) {
+        if (error.name === 'AbortError') {
+          console.log('Запрос был отменен');
+          setLoading(false);
+          return;
+        }
+        
         console.error("Ошибка при получении данных о фильме:", error);
+        setError(true);
         setLoading(false);
       }
     };
 
-    fetchMovieDetails();
+    const timeoutId = setTimeout(() => {
+      fetchMovieDetails();
+    }, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       document.body.style.overflow = "auto";
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     };
   }, [movieId, navigate, location.search]);
 
@@ -71,92 +99,92 @@ export default function MovieDetails() {
     try {
       setCancelLoad(false);
 
-      // Показываем индикатор загрузки
       setLoading(true);
+
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const response = await fetch(
         `${API_BASE_URL}/recommend/similar-movies/${movieId}`,
+        { signal }
       );
 
-      // Проверяем, не была ли отменена загрузка
       if (cancelLoad) {
         setLoading(false);
         return;
       }
 
-      // Сначала получаем данные от API для проверки
       const data = await response.json();
 
-      // Проверяем, не была ли отменена загрузка
       if (cancelLoad) {
         setLoading(false);
         return;
       }
 
-      // Проверяем, содержит ли ответ сообщение об ошибке
       if (!response.ok || data.message) {
         console.log("Получен ответ с ошибкой:", data);
 
-        // Проверяем, не была ли отменена загрузка
         if (cancelLoad) {
           setLoading(false);
           return;
         }
 
-        // Сохраняем информацию о пути пользователя
         const stateToPass = {
-          ...location.state, // Сохраняем весь предыдущий state
-          similarMovies: [], // Пустой массив фильмов
+          ...location.state,
+          similarMovies: [],
           movieTitle: movie?.title || "Фильм",
-          originalMovieId: movieId, // Передаем ID оригинального фильма
-          fromMovieDetails: true, // Флаг, что переход был с детальной страницы фильма
-          noResultsMessage: "Похожие фильмы не найдены", // Сообщение об ошибке
+          originalMovieId: movieId,
+          fromMovieDetails: true,
+          noResultsMessage: "Похожие фильмы не найдены",
         };
 
-        // Если у нас есть информация о том, что пользователь пришел с главной страницы,
-        // добавляем флаг fromMain в передаваемый state
         if (location.state && location.state.fromMain) {
           stateToPass.fromMain = true;
         }
 
-        // Переходим на страницу с похожими фильмами, но с пустым массивом
+        setLoading(false);
         navigate(`/similar/${movieId}`, { state: stateToPass });
         return;
       }
 
-      // Проверяем, не была ли отменена загрузка
       if (cancelLoad) {
         setLoading(false);
         return;
       }
 
-      // Сохраняем информацию о пути пользователя
       const stateToPass = {
-        ...location.state, // Сохраняем весь предыдущий state
+        ...location.state,
         similarMovies: data.recommendations,
         movieTitle: movie?.title || "Фильм",
-        originalMovieId: movieId, // Передаем ID оригинального фильма
-        fromMovieDetails: true, // Флаг, что переход был с детальной страницы фильма
+        originalMovieId: movieId,
+        fromMovieDetails: true,
       };
 
-      // Если у нас есть информация о том, что пользователь пришел с главной страницы,
-      // добавляем флаг fromMain в передаваемый state
       if (location.state && location.state.fromMain) {
         stateToPass.fromMain = true;
       }
 
-      // Если ответ успешный, переходим на страницу с похожими фильмами
+      setLoading(false);
       navigate(`/similar/${movieId}`, { state: stateToPass });
     } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Запрос был отменен');
+        setLoading(false);
+        return;
+      }
+      
       console.error("Ошибка при получении похожих фильмов:", error);
 
-      // Проверяем, не была ли отменена загрузка
       if (cancelLoad) {
         setLoading(false);
         return;
       }
 
-      // Сохраняем информацию о пути пользователя
       const stateToPass = {
         ...location.state,
         similarMovies: [],
@@ -166,38 +194,31 @@ export default function MovieDetails() {
         noResultsMessage: "Похожие фильмы не найдены.",
       };
 
-      // Если у нас есть информация о том, что пользователь пришел с главной страницы,
-      // добавляем флаг fromMain в передаваемый state
       if (location.state && location.state.fromMain) {
         stateToPass.fromMain = true;
       }
 
-      // В случае непредвиденной ошибки также переходим на страницу с похожими фильмами
-      navigate(`/similar/${movieId}`, { state: stateToPass });
-
       setLoading(false);
+      navigate(`/similar/${movieId}`, { state: stateToPass });
     }
   };
 
   const handleSimilarMovies = () => {
+    setCancelLoad(false);
     fetchSimilarMovies();
   };
 
   const handleBack = (e) => {
     e.preventDefault();
 
-    // Проверяем, откуда пришел пользователь
     if (location.state && location.state.fromSimilar) {
-      // Если пришли со страницы похожих фильмов, возвращаемся туда
       navigate(-1);
     } else if (location.state && location.state.fromMain) {
-      // Если пришли с главной страницы, возвращаемся на главную с сохранением состояния
       navigate("/main", {
         state: location.state,
         replace: true,
       });
     } else {
-      // В остальных случаях просто возвращаемся назад
       navigate(-1);
     }
   };
@@ -206,10 +227,21 @@ export default function MovieDetails() {
     setPosterError(true);
   };
 
-  // Функция для обработки отмены загрузки
   const handleCancelLoad = () => {
     setCancelLoad(true);
     setLoading(false);
+    
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    if (!movie) {
+      navigate(-1);
+    }
+    
+    setTimeout(() => {
+      setCancelLoad(false);
+    }, 100);
   };
 
   const renderStarRating = (rating) => {
@@ -248,11 +280,14 @@ export default function MovieDetails() {
     );
   }
 
-  if (!movie) {
+  if (error || (!movie && !loading)) {
     return <div className={styles.error}>Фильм не найден</div>;
   }
 
-  // Получаем полный URL постера или создаем пустой блок при ошибке
+  if (!movie) {
+    return null;
+  }
+
   const posterUrl = posterError ? null : movie.poster_url || movie.poster_ur;
 
   return (

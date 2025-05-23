@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import searchIcon from "../assets/search.svg";
 import genreIcon from "../assets/genre.svg";
@@ -10,10 +10,9 @@ import styles from "./Main.module.css";
 import filterStyles from "../components/FilterModal.module.css";
 import tape from "../assets/tape.png";
 import { theme } from "../styles/theme";
-import FilterModal from "../components/FilterModal";
 import FiltersModal from "../components/FiltersModal";
 import YearSlider from "../components/YearSlider";
-import { API_BASE_URL } from "../App";
+import { API_BASE_URL, POSTER_BASE_URL } from "../App";
 
 import poster1 from "../assets/poster1.jpg";
 import poster2 from "../assets/poster2.jpg";
@@ -100,10 +99,16 @@ export default function Main() {
   const [scrollPosition, setScrollPosition] = useState(0);
 
   const [cancelLoad, setCancelLoad] = useState(false);
+  const abortControllerRef = useRef(null);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const isReset = urlParams.has("reset");
+
+    // Сбрасываем состояние загрузки при инициализации компонента
+    if (!location.state || !location.state.movies || location.state.movies.length === 0) {
+      setIsLoading(false);
+    }
 
     if (isReset) {
       setActiveTab("personal");
@@ -115,7 +120,8 @@ export default function Main() {
       setShowMovies(false);
       setNoResults(false);
       setNoResultsMessage("");
-      setFiltersDisabled(false);
+      setFiltersDisabled(true); // Деактивируем фильтры при сбросе, т.к. нет ID пользователя
+      setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен при сбросе
 
       setShowFiltersModal(false);
 
@@ -152,12 +158,23 @@ export default function Main() {
             `Результаты поиска по запросу "${location.state.searchQuery}"`,
           );
           setFiltersDisabled(true);
+        } else if (location.state.userIdInput && location.state.userIdInput.trim() !== "") {
+          // Если поле поиска пустое, но есть ID пользователя, активируем фильтры
+          setFiltersDisabled(false);
+        } else {
+          // Если нет ни поиска, ни ID пользователя, деактивируем фильтры
+          setFiltersDisabled(true);
         }
       }
 
       if (location.state.userIdInput) {
         setUserIdInput(location.state.userIdInput);
         setUserId(location.state.userIdInput);
+        
+        // Если есть ID пользователя и нет поиска, активируем фильтры
+        if (!location.state.searchQuery || location.state.searchQuery.trim() === "") {
+          setFiltersDisabled(false);
+        }
       }
 
       if (location.state.userTitle) {
@@ -201,6 +218,7 @@ export default function Main() {
       if (location.state.movies && location.state.movies.length > 0) {
         setMovies(location.state.movies);
         setShowMovies(true);
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен при восстановлении из state
       }
 
       if (location.state.filtersDisabled !== undefined) {
@@ -218,7 +236,8 @@ export default function Main() {
       setShowMovies(false);
       setNoResults(false);
       setNoResultsMessage("");
-      setFiltersDisabled(false);
+      setFiltersDisabled(true); // Деактивируем фильтры при инициализации, т.к. нет ID пользователя
+      setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен при инициализации
 
       setShowFiltersModal(false);
 
@@ -241,6 +260,9 @@ export default function Main() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
       document.body.style.overflow = "auto";
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     };
   }, [location, location.search, navigate]);
 
@@ -257,6 +279,9 @@ export default function Main() {
       setUserId(userIdInput);
 
       if (tab === "popular") {
+        // Устанавливаем состояние загрузки перед запросом
+        setIsLoading(true);
+        
         if (genreFilterActive || ratingFilterActive || yearFilterActive) {
           setTimeout(() => {
             applyFilters(tab);
@@ -265,6 +290,9 @@ export default function Main() {
           fetchSimilarUsersRecommendations(userIdInput);
         }
       } else {
+        // Устанавливаем состояние загрузки перед запросом
+        setIsLoading(true);
+        
         if (genreFilterActive || ratingFilterActive || yearFilterActive) {
           setTimeout(() => {
             applyFilters(tab);
@@ -280,24 +308,37 @@ export default function Main() {
     try {
       setCancelLoad(false);
 
-      setUserTitle(`Рекомендации для пользователя`);
+      setUserTitle(`Популярно у пользователей с похожим вкусом`);
 
       setNoResults(false);
       setNoResultsMessage("");
 
       setIsLoading(true);
+      
+      // Создаем новый AbortController для этого запроса
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
+      // Небольшая задержка для гарантированного отображения оверлея загрузки
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const response = await fetch(
         `${API_BASE_URL}/recommend/by-similar-ones/${userId}`,
+        { signal }
       );
 
       if (cancelLoad) {
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
         return;
       }
 
       const data = await response.json();
 
       if (cancelLoad) {
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
         return;
       }
 
@@ -311,7 +352,7 @@ export default function Main() {
         return;
       }
 
-      console.log("Ответ API для похожих пользователей:", data);
+      console.log("Ответ API для рекомендаций по похожим пользователям:", data);
 
       let moviesList = [];
 
@@ -336,13 +377,14 @@ export default function Main() {
       }
 
       if (cancelLoad) {
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
         return;
       }
 
       const formattedMovies = moviesList.map((movie) => {
         let posterUrl = movie.poster_url;
         if (posterUrl && !posterUrl.startsWith("http")) {
-          posterUrl = `https://image.tmdb.org/t/p/w500${posterUrl}`;
+          posterUrl = `${POSTER_BASE_URL}${posterUrl}`;
         }
 
         return {
@@ -356,20 +398,16 @@ export default function Main() {
       });
 
       if (cancelLoad) {
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
         return;
       }
 
       setMovies(formattedMovies);
+      // Активируем фильтры, т.к. есть ID пользователя и успешно получены рекомендации
       setFiltersDisabled(false);
       setSearchQuery("");
-
-      setTimeout(() => {
-        if (!cancelLoad) {
-          setShowMovies(true);
-          document.body.style.overflow = "auto";
-          setIsLoading(false);
-        }
-      }, 100);
+      setShowMovies(true);
+      setIsLoading(false); // Явно выключаем индикатор загрузки
 
       if (genreFilterActive || ratingFilterActive || yearFilterActive) {
         setTimeout(() => {
@@ -379,11 +417,18 @@ export default function Main() {
         }, 200);
       }
     } catch (error) {
-      console.error("Ошибка при получении популярных фильмов:", error);
+      // Проверяем, не была ли отмена запроса
+      if (error.name === 'AbortError') {
+        console.log('Запрос был отменен');
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
+        return;
+      }
+      
+      console.error("Ошибка при получении рекомендаций:", error);
       if (!cancelLoad) {
         setNoResults(true);
         setNoResultsMessage(
-          "Произошла ошибка при получении рекомендаций. Пожалуйста, проверьте ID пользователя и попробуйте снова.",
+          "Произошла ошибка при получении рекомендаций. Пожалуйста, проверьте ID пользователя и попробуйте снова."
         );
         setShowMovies(false);
         setIsLoading(false);
@@ -401,18 +446,31 @@ export default function Main() {
       setNoResultsMessage("");
 
       setIsLoading(true);
+      
+      // Создаем новый AbortController для этого запроса
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
+      // Небольшая задержка для гарантированного отображения оверлея загрузки
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const response = await fetch(
         `${API_BASE_URL}/recommend/by-ratings/${userId}`,
+        { signal }
       );
 
       if (cancelLoad) {
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
         return;
       }
 
       const data = await response.json();
 
       if (cancelLoad) {
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
         return;
       }
 
@@ -451,13 +509,14 @@ export default function Main() {
       }
 
       if (cancelLoad) {
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
         return;
       }
 
       const formattedMovies = moviesList.map((movie) => {
         let posterUrl = movie.poster_url;
         if (posterUrl && !posterUrl.startsWith("http")) {
-          posterUrl = `https://image.tmdb.org/t/p/w500${posterUrl}`;
+          posterUrl = `${POSTER_BASE_URL}${posterUrl}`;
         }
 
         return {
@@ -471,26 +530,29 @@ export default function Main() {
       });
 
       if (cancelLoad) {
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
         return;
       }
 
       setMovies(formattedMovies);
+      // Активируем фильтры, т.к. есть ID пользователя и успешно получены рекомендации
       setFiltersDisabled(false);
       setSearchQuery("");
-
-      setTimeout(() => {
-        if (!cancelLoad) {
-          setShowMovies(true);
-          document.body.style.overflow = "auto";
-          setIsLoading(false);
-        }
-      }, 100);
+      setShowMovies(true);
+      setIsLoading(false); // Явно выключаем индикатор загрузки
     } catch (error) {
+      // Проверяем, не была ли отмена запроса
+      if (error.name === 'AbortError') {
+        console.log('Запрос был отменен');
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
+        return;
+      }
+      
       console.error("Ошибка при получении рекомендаций:", error);
       if (!cancelLoad) {
         setNoResults(true);
         setNoResultsMessage(
-          "Произошла ошибка при получении рекомендаций. Пожалуйста, проверьте ID пользователя и попробуйте снова.",
+          "Произошла ошибка при получении рекомендаций. Пожалуйста, проверьте ID пользователя и попробуйте снова."
         );
         setShowMovies(false);
         setIsLoading(false);
@@ -502,6 +564,8 @@ export default function Main() {
     if (e.key === "Enter") {
       if (searchQuery.trim() === "") return;
 
+      // Явно устанавливаем состояние загрузки перед запросом
+      setIsLoading(true);
       setCancelLoad(false);
 
       setNoResults(false);
@@ -509,18 +573,37 @@ export default function Main() {
 
       setUserIdInput("");
       setUserId("");
+      
+      // Деактивируем фильтры при поиске
+      setFiltersDisabled(true);
+      
+      // Сбрасываем все фильтры при выполнении поиска
+      setSelectedGenres([]);
+      setSelectedRatings([]);
+      setYearRange({ minYear: 1874, maxYear: 2016 });
+      setBestFirst(true);
+      setGenreFilterActive(false);
+      setRatingFilterActive(false);
+      setYearFilterActive(false);
 
       try {
         setUserTitle(`Результаты поиска по запросу "${searchQuery}"`);
 
         const fetchMovies = async () => {
-          setIsLoading(true);
+          // Создаем новый AbortController для этого запроса
+          if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+          }
+          abortControllerRef.current = new AbortController();
+          const signal = abortControllerRef.current.signal;
 
           const response = await fetch(
             `${API_BASE_URL}/movies/search?query=${encodeURIComponent(searchQuery)}`,
+            { signal }
           );
 
           if (cancelLoad) {
+            setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
             return;
           }
 
@@ -531,6 +614,7 @@ export default function Main() {
           const data = await response.json();
 
           if (cancelLoad) {
+            setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
             return;
           }
 
@@ -549,7 +633,7 @@ export default function Main() {
           if (moviesList.length === 0) {
             setNoResults(true);
             setNoResultsMessage(
-              `По запросу "${searchQuery}" ничего не найдено.`,
+              `По запросу "${searchQuery}" ничего не найдено.`
             );
             setShowMovies(false);
             setIsLoading(false);
@@ -557,13 +641,14 @@ export default function Main() {
           }
 
           if (cancelLoad) {
+            setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
             return;
           }
 
           const formattedMovies = moviesList.map((movie) => {
             let posterUrl = movie.poster_url;
             if (posterUrl && !posterUrl.startsWith("http")) {
-              posterUrl = `https://image.tmdb.org/t/p/w500${posterUrl}`;
+              posterUrl = `${POSTER_BASE_URL}${posterUrl}`;
             }
 
             return {
@@ -577,38 +662,34 @@ export default function Main() {
           });
 
           if (cancelLoad) {
+            setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
             return;
           }
 
+          console.log("Отформатированные фильмы:", formattedMovies);
+
           setMovies(formattedMovies);
-
-          if (searchQuery.trim() !== "") {
-            setFiltersDisabled(true);
-
-            setSelectedGenres([]);
-            setSelectedRatings([]);
-            setYearRange({ minYear: 1874, maxYear: 2016 });
-            setGenreFilterActive(false);
-            setRatingFilterActive(false);
-            setYearFilterActive(false);
-          }
-
-          setTimeout(() => {
-            if (!cancelLoad) {
-              setShowMovies(true);
-              document.body.style.overflow = "auto";
-              setIsLoading(false);
-            }
-          }, 100);
+          setShowMovies(true);
+          setIsLoading(false); // Явно выключаем индикатор загрузки
         };
 
-        fetchMovies();
+        // Небольшая задержка для гарантированного отображения оверлея загрузки
+        setTimeout(() => {
+          fetchMovies();
+        }, 100);
       } catch (error) {
+        // Проверяем, не была ли отмена запроса
+        if (error.name === 'AbortError') {
+          console.log('Запрос был отменен');
+          setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
+          return;
+        }
+        
         console.error("Ошибка при поиске фильмов:", error);
         if (!cancelLoad) {
           setNoResults(true);
           setNoResultsMessage(
-            "Произошла ошибка при поиске фильмов. Пожалуйста, попробуйте снова.",
+            "Произошла ошибка при поиске фильмов. Пожалуйста, попробуйте еще раз."
           );
           setShowMovies(false);
           setIsLoading(false);
@@ -620,18 +701,49 @@ export default function Main() {
   const handleClearSearch = () => {
     setSearchQuery("");
     setUserTitle("Рекомендации для пользователя");
-    setFiltersDisabled(false);
+    // Активируем фильтры только если есть ID пользователя
+    setFiltersDisabled(userIdInput.trim() === "");
     setShowMovies(false);
+    
+    // Сбрасываем все фильтры при очистке поля поиска
+    setSelectedGenres([]);
+    setSelectedRatings([]);
+    setYearRange({ minYear: 1874, maxYear: 2016 });
+    setBestFirst(true);
+    setGenreFilterActive(false);
+    setRatingFilterActive(false);
+    setYearFilterActive(false);
+  };
+
+  // Добавляем обработчик изменения поля поиска
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    // Если поле поиска не пустое, деактивируем фильтры
+    // Иначе активируем их только если есть ID пользователя
+    if (value.trim() !== "") {
+      setFiltersDisabled(true);
+    } else {
+      setFiltersDisabled(userIdInput.trim() === "");
+    }
   };
 
   const handleUserIdChange = (e) => {
-    setUserIdInput(e.target.value);
+    const value = e.target.value;
+    setUserIdInput(value);
+    
+    // Активируем фильтры только если есть ID пользователя и поле поиска пустое
+    setFiltersDisabled(value.trim() === "");
   };
 
   const handleUserIdSearch = async (e) => {
     if (e.key === "Enter") {
       try {
         setUserId(userIdInput);
+        
+        // Устанавливаем состояние загрузки перед запросом
+        setIsLoading(true);
 
         // Получаем текущее значение таба
         const currentTab = activeTab;
@@ -643,6 +755,7 @@ export default function Main() {
         }
       } catch (error) {
         console.error("Ошибка при получении рекомендаций:", error);
+        setIsLoading(false);
       }
     }
   };
@@ -850,10 +963,21 @@ export default function Main() {
 
       setIsLoading(true);
       setShowMovies(false);
+      
+      // Создаем новый AbortController для этого запроса
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
 
-      const response = await fetch(url);
+      // Небольшая задержка для гарантированного отображения оверлея загрузки
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const response = await fetch(url, { signal });
 
       if (cancelLoad) {
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
         return;
       }
 
@@ -864,6 +988,7 @@ export default function Main() {
       const data = await response.json();
 
       if (cancelLoad) {
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
         return;
       }
 
@@ -905,13 +1030,14 @@ export default function Main() {
       }
 
       if (cancelLoad) {
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
         return;
       }
 
       const formattedMovies = moviesList.map((movie) => {
         let posterUrl = movie.poster_url;
         if (posterUrl && !posterUrl.startsWith("http")) {
-          posterUrl = `https://image.tmdb.org/t/p/w500${posterUrl}`;
+          posterUrl = `${POSTER_BASE_URL}${posterUrl}`;
         }
 
         return {
@@ -925,16 +1051,23 @@ export default function Main() {
       });
 
       if (cancelLoad) {
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
         return;
       }
 
       console.log("Отформатированные фильмы:", formattedMovies);
 
       setMovies(formattedMovies);
-
       setShowMovies(true);
-      setIsLoading(false);
+      setIsLoading(false); // Явно выключаем индикатор загрузки
     } catch (error) {
+      // Проверяем, не была ли отмена запроса
+      if (error.name === 'AbortError') {
+        console.log('Запрос был отменен');
+        setIsLoading(false); // Убеждаемся, что индикатор загрузки выключен
+        return;
+      }
+      
       console.error(
         "Ошибка при получении отфильтрованных рекомендаций:",
         error,
@@ -957,6 +1090,11 @@ export default function Main() {
   const handleCancelLoad = () => {
     setCancelLoad(true);
     setIsLoading(false);
+    
+    // Отменяем текущий запрос
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
 
     setTimeout(() => {
       setCancelLoad(false);
@@ -1021,7 +1159,7 @@ export default function Main() {
               type="text"
               placeholder="Поиск по названию..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchInputChange}
               onKeyDown={handleSearch}
               className={styles.searchInput}
             />

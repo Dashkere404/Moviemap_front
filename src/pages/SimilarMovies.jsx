@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import styles from "./Main.module.css"; // Используем те же стили, что и в Main
-import { API_BASE_URL } from "../App";
+import { API_BASE_URL, POSTER_BASE_URL } from "../App";
 
 export default function SimilarMovies() {
   const navigate = useNavigate();
@@ -12,35 +12,85 @@ export default function SimilarMovies() {
   const [showMovies, setShowMovies] = useState(false);
   const [noResults, setNoResults] = useState(false);
   const [noResultsMessage, setNoResultsMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [originalMovieId, setOriginalMovieId] = useState(null);
   const [userTitle, setUserTitle] = useState("Похожие фильмы");
   const [cancelLoad, setCancelLoad] = useState(false);
+  const abortControllerRef = useRef(null);
 
   // Сортировка фильмов по рейтингу (от высшего к низшему)
   const sortedMovies = [...movies].sort((a, b) => b.rating - a.rating);
 
   useEffect(() => {
+    // Сбрасываем состояния при каждом изменении movieId или location
+    setIsLoading(true);
+    setNoResults(false);
+    setNoResultsMessage("");
+    setCancelLoad(false);
+    
+    // Скроллим в начало страницы при загрузке
     window.scrollTo(0, 0);
+    document.body.style.overflow = "hidden";
 
-    if (location.state) {
-      // Сохраняем информацию о том, что пользователь пришел с главной страницы
-      if (location.state.fromMain) {
-        console.log(
-          "Пользователь пришел с главной страницы, сохраняем состояние",
-        );
-      }
+    // Функция для обработки данных
+    const processData = () => {
+      if (location.state) {
+        // Сохраняем информацию о том, что пользователь пришел с главной страницы
+        if (location.state.fromMain) {
+          console.log(
+            "Пользователь пришел с главной страницы, сохраняем состояние",
+          );
+        }
 
-      // Если есть state с данными о похожих фильмах
-      if (location.state.similarMovies) {
-        // Если массив пустой и есть сообщение об ошибке
-        if (
-          location.state.similarMovies.length === 0 &&
-          location.state.noResultsMessage
-        ) {
-          setNoResults(true);
-          setNoResultsMessage(location.state.noResultsMessage);
-          setShowMovies(false);
+        // Если есть state с данными о похожих фильмах
+        if (location.state.similarMovies) {
+          // Если массив пустой и есть сообщение об ошибке
+          if (
+            location.state.similarMovies.length === 0 &&
+            location.state.noResultsMessage
+          ) {
+            setNoResults(true);
+            setNoResultsMessage(location.state.noResultsMessage);
+            setShowMovies(false);
+            setIsLoading(false); // Явно выключаем индикатор загрузки
+
+            // Устанавливаем заголовок для похожих фильмов
+            if (location.state.movieTitle) {
+              setUserTitle(`Фильмы, похожие на "${location.state.movieTitle}"`);
+            } else {
+              setUserTitle(`Похожие фильмы`);
+            }
+
+            // Сохраняем ID оригинального фильма для кнопки возврата
+            if (location.state.originalMovieId) {
+              setOriginalMovieId(location.state.originalMovieId);
+            } else if (movieId) {
+              setOriginalMovieId(movieId);
+            }
+
+            return;
+          }
+
+          const formattedMovies = location.state.similarMovies.map((movie) => {
+            // Проверяем, содержит ли URL постера полный путь или только имя файла
+            let posterUrl = movie.poster_url;
+            if (posterUrl && !posterUrl.startsWith("http")) {
+              posterUrl = `${POSTER_BASE_URL}${posterUrl}`;
+            }
+
+            return {
+              id: movie.movieId,
+              title: movie.title,
+              rating: movie.average_rating.toFixed(1),
+              poster: posterUrl,
+              year: movie.year || 2000,
+              genres: movie.genres || [],
+            };
+          });
+
+          setMovies(formattedMovies);
+          setShowMovies(true);
+          setIsLoading(false); // Явно выключаем индикатор загрузки
 
           // Устанавливаем заголовок для похожих фильмов
           if (location.state.movieTitle) {
@@ -55,58 +105,44 @@ export default function SimilarMovies() {
           } else if (movieId) {
             setOriginalMovieId(movieId);
           }
-
-          return;
-        }
-
-        const formattedMovies = location.state.similarMovies.map((movie) => {
-          // Проверяем, содержит ли URL постера полный путь или только имя файла
-          let posterUrl = movie.poster_url;
-          if (posterUrl && !posterUrl.startsWith("http")) {
-            posterUrl = `https://image.tmdb.org/t/p/w500${posterUrl}`;
-          }
-
-          return {
-            id: movie.movieId,
-            title: movie.title,
-            rating: movie.average_rating.toFixed(1),
-            poster: posterUrl,
-            year: movie.year || 2000,
-            genres: movie.genres || [],
-          };
-        });
-
-        setMovies(formattedMovies);
-        setShowMovies(true);
-
-        // Устанавливаем заголовок для похожих фильмов
-        if (location.state.movieTitle) {
-          setUserTitle(`Фильмы, похожие на "${location.state.movieTitle}"`);
         } else {
-          setUserTitle(`Похожие фильмы`);
+          // Если в state нет данных о похожих фильмах, но есть movieId
+          if (movieId) {
+            fetchSimilarMovies(movieId);
+          } else {
+            // Если нет ни данных, ни movieId
+            setNoResults(true);
+            setNoResultsMessage("Похожие фильмы не найдены");
+            setShowMovies(false);
+            setIsLoading(false); // Явно выключаем индикатор загрузки
+          }
         }
-
-        // Сохраняем ID оригинального фильма для кнопки возврата
-        if (location.state.originalMovieId) {
-          setOriginalMovieId(location.state.originalMovieId);
-        } else if (movieId) {
-          setOriginalMovieId(movieId);
-        }
-      }
-    } else {
-      // Если state пустой, пробуем получить похожие фильмы по movieId из URL
-      if (movieId) {
-        fetchSimilarMovies(movieId);
       } else {
-        // Если нет ни state, ни movieId, показываем сообщение об ошибке
-        setNoResults(true);
-        setNoResultsMessage("Похожие фильмы не найдены");
-        setShowMovies(false);
+        // Если state пустой, пробуем получить похожие фильмы по movieId из URL
+        if (movieId) {
+          fetchSimilarMovies(movieId);
+        } else {
+          // Если нет ни state, ни movieId, показываем сообщение об ошибке
+          setNoResults(true);
+          setNoResultsMessage("Похожие фильмы не найдены");
+          setShowMovies(false);
+          setIsLoading(false); // Явно выключаем индикатор загрузки
+        }
       }
-    }
+    };
+
+    // Небольшая задержка для гарантированного отображения оверлея загрузки
+    const timeoutId = setTimeout(() => {
+      processData();
+    }, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       document.body.style.overflow = "auto";
+      // Отменяем запрос при размонтировании компонента
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     };
   }, [location, movieId]);
 
@@ -118,9 +154,20 @@ export default function SimilarMovies() {
 
       // Показываем индикатор загрузки
       setIsLoading(true);
+      
+      // Создаем новый AbortController для этого запроса
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
+      // Небольшая задержка для гарантированного отображения оверлея загрузки
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const response = await fetch(
         `${API_BASE_URL}/recommend/similar-movies/${movieId}`,
+        { signal }
       );
 
       // Проверяем, не была ли отменена загрузка
@@ -152,13 +199,24 @@ export default function SimilarMovies() {
 
       // Получаем информацию о фильме для заголовка
       try {
-        const movieResponse = await fetch(`${API_BASE_URL}/movie/${movieId}`);
+        // Создаем новый AbortController для этого запроса
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+        const movieSignal = abortControllerRef.current.signal;
+        
+        const movieResponse = await fetch(`${API_BASE_URL}/movie/${movieId}`, { signal: movieSignal });
 
         if (movieResponse.ok) {
           const movieData = await movieResponse.json();
           setUserTitle(`Фильмы, похожие на "${movieData.title}"`);
         }
       } catch (error) {
+        if (error.name === 'AbortError') {
+          console.log('Запрос информации о фильме был отменен');
+          return;
+        }
         console.error("Ошибка при получении данных о фильме:", error);
       }
 
@@ -182,7 +240,7 @@ export default function SimilarMovies() {
         // Проверяем, содержит ли URL постера полный путь или только имя файла
         let posterUrl = movie.poster_url;
         if (posterUrl && !posterUrl.startsWith("http")) {
-          posterUrl = `https://image.tmdb.org/t/p/w500${posterUrl}`;
+          posterUrl = `${POSTER_BASE_URL}${posterUrl}`;
         }
 
         return {
@@ -206,6 +264,12 @@ export default function SimilarMovies() {
       setOriginalMovieId(movieId);
       setIsLoading(false);
     } catch (error) {
+      // Проверяем, не была ли отмена запроса
+      if (error.name === 'AbortError') {
+        console.log('Запрос был отменен');
+        return;
+      }
+      
       console.error("Ошибка при получении похожих фильмов:", error);
 
       if (!cancelLoad) {
@@ -262,6 +326,24 @@ export default function SimilarMovies() {
     setNoResults(true);
     setNoResultsMessage("Загрузка была отменена пользователем");
     setShowMovies(false);
+    
+    // Отменяем текущий запрос
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    // Если фильмы не были загружены и это первоначальная загрузка, возвращаемся назад
+    if (movies.length === 0 && !location.state?.similarMovies) {
+      // Небольшая задержка перед навигацией, чтобы пользователь увидел сообщение об отмене
+      setTimeout(() => {
+        navigate(-1);
+      }, 500);
+    }
+    
+    // Сбрасываем флаг cancelLoad через небольшой промежуток времени
+    setTimeout(() => {
+      setCancelLoad(false);
+    }, 100);
   };
 
   return (

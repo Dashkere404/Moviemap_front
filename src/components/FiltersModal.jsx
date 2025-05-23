@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./FilterModal.module.css";
 import YearSlider from "./YearSlider";
 import genreIcon from "../assets/genre.svg";
 import rateIcon from "../assets/rate.svg";
 import yearIcon from "../assets/year.svg";
 
-export default function FiltersModal({
+const FiltersModal = ({
   isOpen,
   onClose,
   genres,
@@ -17,7 +17,7 @@ export default function FiltersModal({
   genreTranslations,
   onApply,
   onClear,
-}) {
+}) => {
   const modalRef = useRef(null);
   const [isClosing, setIsClosing] = useState(false);
 
@@ -61,15 +61,15 @@ export default function FiltersModal({
     };
   }, [isOpen]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsClosing(true);
     setTimeout(() => {
       onClose();
       setIsClosing(false);
     }, 50);
-  };
+  }, [onClose]);
 
-  const handleApply = () => {
+  const handleApply = useCallback(() => {
     // Принудительно обновляем состояния перед вызовом onApply
     const filters = {
       selectedGenres: [...tempSelectedGenres],
@@ -89,9 +89,9 @@ export default function FiltersModal({
       onApply(filters);
       setIsClosing(false);
     }, 50);
-  };
+  }, [tempSelectedGenres, tempSelectedRatings, tempYearRange, onClose, onApply]);
 
-  const handleApplyEmpty = () => {
+  const handleApplyEmpty = useCallback(() => {
     // Применяем пустые фильтры
     const emptyFilters = {
       selectedGenres: [],
@@ -111,9 +111,9 @@ export default function FiltersModal({
       onApply(emptyFilters);
       setIsClosing(false);
     }, 50);
-  };
+  }, [onClose, onApply]);
 
-  const toggleGenreSelection = (genre) => {
+  const toggleGenreSelection = useCallback((genre) => {
     setTempSelectedGenres((prev) => {
       if (prev.includes(genre)) {
         return prev.filter((g) => g !== genre);
@@ -121,9 +121,9 @@ export default function FiltersModal({
         return [...prev, genre];
       }
     });
-  };
+  }, []);
 
-  const toggleRatingSelection = (rating) => {
+  const toggleRatingSelection = useCallback((rating) => {
     setTempSelectedRatings((prev) => {
       if (prev.includes(rating)) {
         return [];
@@ -131,11 +131,11 @@ export default function FiltersModal({
         return [rating];
       }
     });
-  };
+  }, []);
 
-  const handleTempYearChange = (range) => {
+  const handleTempYearChange = useCallback((range) => {
     setTempYearRange(range);
-  };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -199,17 +199,23 @@ export default function FiltersModal({
                       )}
                     </div>
                   </div>
-                  <span>{rating}</span>
+                  <span>
+                    {rating === "1+" ? "⭐+" : ""}
+                    {rating === "2+" ? "⭐⭐+" : ""}
+                    {rating === "3+" ? "⭐⭐⭐+" : ""}
+                    {rating === "4+" ? "⭐⭐⭐⭐+" : ""}
+                    {rating === "5" ? "⭐⭐⭐⭐⭐+" : ""}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Годы */}
+          {/* Год */}
           <div style={{ marginTop: "30px" }}>
             <h3 className={styles.modalSubtitle}>
-              <img src={yearIcon} alt="Годы" className={styles.filterIcon} />
-              Год
+              <img src={yearIcon} alt="Год" className={styles.filterIcon} />
+              Год выпуска
             </h3>
             <YearSlider
               minYear={1874}
@@ -218,24 +224,24 @@ export default function FiltersModal({
               onChange={handleTempYearChange}
             />
           </div>
-        </div>
-        <div className={styles.modalFooter}>
-          <button
-            className={styles.resetApplyButton}
-            onClick={handleApplyEmpty}
-            disabled={isClosing}
-          >
-            Сбросить фильтры
-          </button>
-          <button
-            className={styles.applyButton}
-            onClick={handleApply}
-            disabled={isClosing}
-          >
-            Применить
-          </button>
+
+          {/* Кнопки */}
+          <div className={styles.modalFooter}>
+            <button
+              className={styles.clearButton}
+              onClick={handleApplyEmpty}
+            >
+              Сбросить все
+            </button>
+            <button className={styles.applyButton} onClick={handleApply}>
+              Применить
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+// Используем React.memo для предотвращения ненужных перерисовок
+export default React.memo(FiltersModal);

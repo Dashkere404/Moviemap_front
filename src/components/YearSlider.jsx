@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./FilterModal.module.css";
 
-export default function YearSlider({
+const YearSlider = ({
   minYear = 1874,
   maxYear = 2016,
   onChange,
   initialYearRange,
-}) {
+}) => {
   // Состояния для текущих значений ползунков
   const [minValue, setMinValue] = useState(
     initialYearRange?.minYear || minYear,
@@ -32,8 +32,8 @@ export default function YearSlider({
     }
   }, [initialYearRange]);
 
-  // Явно вызываем onChange при изменении значений
-  useEffect(() => {
+  // Мемоизируем функцию обновления значений для предотвращения лишних рендеров
+  const handleChange = useCallback(() => {
     // Уведомляем родительский компонент об изменениях
     onChange({
       minYear: minValue,
@@ -41,13 +41,18 @@ export default function YearSlider({
     });
   }, [minValue, maxValue, onChange]);
 
+  // Явно вызываем onChange при изменении значений
+  useEffect(() => {
+    handleChange();
+  }, [handleChange]);
+
   // Вычисляем процент для позиционирования ползунков
-  const getPercent = (value) => {
+  const getPercent = useCallback((value) => {
     return ((value - minYear) / (maxYear - minYear)) * 100;
-  };
+  }, [minYear, maxYear]);
 
   // Вычисляем значение из позиции курсора
-  const getValueFromPosition = (position) => {
+  const getValueFromPosition = useCallback((position) => {
     if (!sliderRef.current) return 0;
 
     const sliderRect = sliderRef.current.getBoundingClientRect();
@@ -55,10 +60,10 @@ export default function YearSlider({
     const value = Math.round(minYear + percent * (maxYear - minYear));
 
     return Math.max(minYear, Math.min(maxYear, value));
-  };
+  }, [minYear, maxYear]);
 
   // Обработчик нажатия на ползунок (мышь)
-  const handleThumbMouseDown = (e, thumb) => {
+  const handleThumbMouseDown = useCallback((e, thumb) => {
     e.preventDefault();
     setActiveThumb(thumb);
     isDraggingRef.current = true;
@@ -90,10 +95,10 @@ export default function YearSlider({
 
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-  };
+  }, [getValueFromPosition, maxValue, minValue]);
 
   // Обработчик нажатия на ползунок (тач)
-  const handleTouchStart = (e, thumb) => {
+  const handleTouchStart = useCallback((e, thumb) => {
     e.preventDefault();
     setActiveThumb(thumb);
     isDraggingRef.current = true;
@@ -125,7 +130,7 @@ export default function YearSlider({
 
     document.addEventListener("touchmove", handleTouchMove);
     document.addEventListener("touchend", handleTouchEnd);
-  };
+  }, [getValueFromPosition, maxValue, minValue]);
 
   return (
     <div className={styles.rangeContainer}>
@@ -187,4 +192,7 @@ export default function YearSlider({
       <input type="hidden" name="max-year" value={maxValue} />
     </div>
   );
-}
+};
+
+// Используем React.memo для предотвращения ненужных перерисовок
+export default React.memo(YearSlider);

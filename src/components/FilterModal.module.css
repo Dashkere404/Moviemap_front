@@ -110,6 +110,18 @@
   border: 1px solid #efcfff;
 }
 
+.clearButton {
+  background-color: transparent;
+  color: #efcfff;
+  border: 1px solid #efcfff;
+  border-radius: 20px;
+  padding: 15px 30px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
 .resetApplyButton {
   background-color: rgba(239, 207, 255, 0.2);
   color: #efcfff;
